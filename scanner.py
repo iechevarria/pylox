@@ -23,7 +23,19 @@ KEYWORDS = {
 
 
 def is_digit(char):
-    return char >= '0' and char <= '9'
+    return char >= "0" and char <= "9"
+
+
+def is_alpha(char):
+    return (
+        (char >= "a" and char <= "z")
+        or (char >= "A" and char <= "Z")
+        or (char == "_")
+    )
+
+
+def is_alphanumeric(char):
+    return is_digit(char) or is_alpha(char)
 
 
 class Scanner:
@@ -117,8 +129,22 @@ class Scanner:
         else:
             if is_digit(char):
                 self.number()
+            elif is_alpha(char):
+                self.identifier()
             else:
                 self.error(self.line, f"Unexpected character: {char}")
+
+
+    def identifier(self):
+        while (is_alphanumeric(self.peek())):
+            self.advance()
+
+        text = self.source[self.start:self.current]
+
+        if text in KEYWORDS:
+            self.add_token(KEYWORDS[text])
+        else:
+            self.add_token(tt.IDENTIFIER)
 
 
     def number(self):
