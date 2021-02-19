@@ -1,11 +1,15 @@
 import sys
 
+from error_handler import ErrorHandler
+from scanner import Scanner 
+
 
 class Lox:
-    had_error = False
-
     def __init__(self):
         args = sys.argv
+
+        self.error_handler = ErrorHandler()
+
         if (len(args) > 2):
             print("Usage: python lox [script]")
             sys.exit(64)
@@ -19,7 +23,7 @@ class Lox:
         with open(path, 'r') as f:
             self.run(f.read())
 
-        if (Lox.had_error):
+        if (self.error_handler.had_error):
             sys.exit(65)
 
 
@@ -30,27 +34,15 @@ class Lox:
             except EOFError:
                 break
             self.run(line)
-            Lox.had_error = False
+            self.error_handler.had_error = False
 
 
     def run(self, source):
-        # Scanner scanner = new Scanner(source);
-        # List<Token> tokens = scanner.scanTokens();
-        tokens = source.split(" ")
+        scanner = Scanner(source=source, error_handler=self.error_handler)
+        tokens = scanner.scan_tokens()
 
         for token in tokens:
             print(token)
-
-
-    @staticmethod
-    def error(line, message):
-        Lox._report(line, message)
-
-
-    @staticmethod
-    def _report(line, message):
-        print(f"[line {line}] Error: {message}")
-        Lox.had_error = True
 
 
 if __name__ == "__main__":
