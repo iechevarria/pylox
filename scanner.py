@@ -110,8 +110,10 @@ class Scanner:
         # handle slash
         elif char == "/":
             if self.match('/'):
-                while (self.peek() != "\n" and not self.is_at_end()):
+                while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
+            elif self.match('*'):
+                self.block_comment()
             else:
                 self.add_token(tt.SLASH)
 
@@ -179,6 +181,19 @@ class Scanner:
         self.add_token_literal(type=tt.STRING, literal=value)
 
 
+    def block_comment(self):
+        while (
+            not (self.peek() == "*" and self.peek_next() == "/")
+            and not self.is_at_end()
+        ):
+            if self.peek() == "\n":
+                self.line += 1
+            self.advance()
+
+        if self.peek() == "*" and self.peek_next() == "/":
+            self.advance(spaces=2)
+
+
     def match(self, expected):
         if self.is_at_end():
             return False
@@ -200,8 +215,8 @@ class Scanner:
         return self.source[self.current + 1]
 
 
-    def advance(self):
-        self.current += 1
+    def advance(self, spaces=1):
+        self.current += spaces
         return self.source[self.current - 1]
     
 
