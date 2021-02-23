@@ -2,10 +2,11 @@ import expr as Expr
 from token_type import TokenType as tt
 
 
-class Parser:
-    class ParseError(Exception):
-        pass
+class ParseError(Exception):
+    pass
 
+
+class Parser:
     def __init__(self, tokens, error_handler):
         self.tokens = tokens
         self.error_handler = error_handler
