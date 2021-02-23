@@ -1,6 +1,8 @@
 import sys
 
+from ast_printer import print_ast
 from error_handler import ErrorHandler
+from parser_ import Parser
 from scanner import Scanner 
 
 
@@ -23,7 +25,7 @@ class Lox:
         with open(path, 'r') as f:
             self.run(f.read())
 
-        if (self.error_handler.had_error):
+        if self.had_error():
             sys.exit(65)
 
 
@@ -43,6 +45,19 @@ class Lox:
 
         for token in tokens:
             print(token)
+
+        parser = Parser(tokens=tokens, error_handler=self.error_handler)
+        expression = parser.parse()
+
+        if self.had_error():
+            return
+        
+        print_ast(expression)
+
+
+
+    def had_error(self):
+        return self.error_handler.had_error
 
 
 if __name__ == "__main__":

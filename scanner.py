@@ -22,22 +22,6 @@ KEYWORDS = {
 }
 
 
-def is_digit(char):
-    return char >= "0" and char <= "9"
-
-
-def is_alpha(char):
-    return (
-        (char >= "a" and char <= "z")
-        or (char >= "A" and char <= "Z")
-        or (char == "_")
-    )
-
-
-def is_alphanumeric(char):
-    return is_digit(char) or is_alpha(char)
-
-
 class Scanner:
     def __init__(self, source, error_handler):
         self.source = source
@@ -229,3 +213,19 @@ class Scanner:
         self.tokens.append(
             Token(type=type, lexeme=text, literal=literal, line=self.line)
         )
+
+
+def is_digit(char):
+    return char >= "0" and char <= "9"
+
+
+def is_alpha(char):
+    return (
+        (char >= "a" and char <= "z")
+        or (char >= "A" and char <= "Z")
+        or (char == "_")
+    )
+
+
+def is_alphanumeric(char):
+    return is_digit(char) or is_alpha(char)
