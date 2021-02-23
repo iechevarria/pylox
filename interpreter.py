@@ -19,7 +19,7 @@ def unary(expr):
     right = evaluate(expr.right)
 
     if expr.operator.type == tt.MINUS:
-        check_number_operand(operator=expr.operator, operand=right)
+        check_number_operands(operator=expr.operator, operand=right)
         return - float(right)
     if expr.operator.type == tt.BANG:
         return not is_truthy(right)
@@ -102,7 +102,7 @@ def check_number_operands(operator, *operands):
 def stringify(obj):
     if obj is None:
         return "nil"
-    
+
     if isinstance(obj, float):
         text = str(obj)
         if text.endswith(".0"):
@@ -131,5 +131,3 @@ def is_equal(a, b):
         return False
 
     return a == b
-
-

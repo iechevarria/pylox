@@ -43,12 +43,11 @@ def print_ast(expr):
     print(EXPRS[expr.__class__.__name__](expr))
 
 
-
 if __name__ == "__main__":
     import expr
     from token import Token
     from token_type import TokenType as tt
-    
+
     # test printing
     expression = expr.Binary(
         expr.Unary(

@@ -12,17 +12,14 @@ class Parser:
         self.error_handler = error_handler
         self.current = 0
 
-
     def parse(self):
         try:
             return self.expression()
         except ParseError:
             return None
 
-
     def expression(self):
         return self.equality()
-
 
     def equality(self):
         expr = self.comparison()
@@ -34,7 +31,6 @@ class Parser:
 
         return expr
 
-
     def comparison(self):
         expr = self.term()
 
@@ -44,7 +40,6 @@ class Parser:
             expr = Expr.Binary(left=expr, operator=operator, right=right)
 
         return expr
-
 
     def term(self):
         expr = self.factor()
@@ -56,7 +51,6 @@ class Parser:
 
         return expr
 
-
     def factor(self):
         expr = self.unary()
 
@@ -67,15 +61,13 @@ class Parser:
 
         return expr
 
-
     def unary(self):
         if self.match(tt.BANG, tt.MINUS):
             operator = self.previous()
             right = self.unary()
             return Expr.Unary(operator, right)
-        
-        return self.primary()
 
+        return self.primary()
 
     def primary(self):
         if self.match(tt.FALSE):
@@ -84,7 +76,7 @@ class Parser:
             return Expr.Literal(value=True)
         if self.match(tt.NIL):
             return Expr.Literal(value=None)
-        
+
         if self.match(tt.NUMBER, tt.STRING):
             return Expr.Literal(self.previous().literal)
 
@@ -95,7 +87,6 @@ class Parser:
 
         raise self.error(token=self.peek(), message="Expect expression.")
 
-
     def match(self, *types):
         for t in types:
             if self.check(t):
@@ -104,18 +95,15 @@ class Parser:
 
         return False
 
-
     def consume(self, type, message):
         if self.check(type):
             return self.advance()
-        
-        raise self.error(token=self.peek(), message=message)
 
+        raise self.error(token=self.peek(), message=message)
 
     def error(self, token, message):
         self.error_handler.token_error(token=token, message=message)
         return ParseError()
-
 
     def synchronize(self):
         self.advance()
@@ -123,7 +111,7 @@ class Parser:
         while not self.is_at_end():
             if (self.previous().type == tt.SEMICOLON):
                 return
-            
+
             if self.peek().type in (
                 tt.CLASS,
                 tt.FUN,
@@ -138,28 +126,23 @@ class Parser:
 
             self.advance()
 
-
     def check(self, type):
         if self.is_at_end():
             return False
 
         return self.peek().type == type
 
-    
     def advance(self):
         if not self.is_at_end():
             self.current += 1
 
         return self.previous()
 
-
     def is_at_end(self):
         return self.peek().type == tt.EOF
 
-
     def peek(self):
         return self.tokens[self.current]
-
 
     def previous(self):
         return self.tokens[self.current - 1]

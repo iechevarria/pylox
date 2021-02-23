@@ -22,7 +22,6 @@ class Lox:
         else:
             self.run_prompt()
 
-
     def run_file(self, path):
         with open(path, 'r') as f:
             self.run(f.read())
@@ -32,7 +31,6 @@ class Lox:
         if self.had_runtime_error():
             sys.exit(70)
 
-
     def run_prompt(self):
         while True:
             try:
@@ -41,7 +39,6 @@ class Lox:
                 break
             self.run(line)
             self.error_handler.had_error = False
-
 
     def run(self, source):
         scanner = Scanner(source=source, error_handler=self.error_handler)
@@ -56,10 +53,8 @@ class Lox:
         print_ast(expression)
         self.interpreter.interperet(expression)
 
-
     def had_error(self):
         return self.error_handler.had_error
-
 
     def had_runtime_error(self):
         return self.error_handler.had_runtime_error

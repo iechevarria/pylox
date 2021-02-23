@@ -32,14 +32,11 @@ class Scanner:
         self.current = 0
         self.line = 1
 
-
     def error(self, line, message):
         self.error_handler.error(line=line, message=message)
 
-
     def is_at_end(self):
         return self.current >= len(self.source)
-
 
     def scan_tokens(self):
         while not self.is_at_end():
@@ -51,7 +48,6 @@ class Scanner:
         )
 
         return self.tokens
-
 
     def scan_token(self):
         char = self.advance()
@@ -78,7 +74,7 @@ class Scanner:
         elif char == "*":
             self.add_token(tt.STAR)
 
-        # 1 or 2 token stuff 
+        # 1 or 2 token stuff
         elif char == "!":
             token = tt.BANG_EQUAL if self.match("=") else tt.BANG
             self.add_token(token)
@@ -90,7 +86,7 @@ class Scanner:
             self.add_token(token)
         elif char == ">":
             token = tt.GREATER_EQUAL if self.match("=") else tt.GREATER
-        
+
         # handle slash
         elif char == "/":
             if self.match('/'):
@@ -106,7 +102,7 @@ class Scanner:
             return
         elif char == "\n":
             self.line += 1
-        
+
         # handle string
         elif char == "\"":
             self.string()
@@ -120,7 +116,6 @@ class Scanner:
             else:
                 self.error(self.line, f"Unexpected character: {char}")
 
-
     def identifier(self):
         while (is_alphanumeric(self.peek())):
             self.advance()
@@ -131,7 +126,6 @@ class Scanner:
             self.add_token(KEYWORDS[text])
         else:
             self.add_token(tt.IDENTIFIER)
-
 
     def number(self):
         while is_digit(self.peek()):
@@ -146,13 +140,12 @@ class Scanner:
             type=tt.NUMBER, literal=float(self.source[self.start:self.current])
         )
 
-
     def string(self):
         while self.peek() != "\"" and not self.is_at_end():
             if self.peek() == "\n":
                 self.line += 1
             self.advance()
-        
+
         if (self.is_at_end()):
             self.error(self.line, "Unterminated string.")
             return
@@ -163,7 +156,6 @@ class Scanner:
         # trim surrounding quotes
         value = self.source[self.start + 1:self.current - 1]
         self.add_token_literal(type=tt.STRING, literal=value)
-
 
     def block_comment(self):
         while (
@@ -177,7 +169,6 @@ class Scanner:
         if self.peek() == "*" and self.peek_next() == "/":
             self.advance(spaces=2)
 
-
     def match(self, expected):
         if self.is_at_end():
             return False
@@ -187,26 +178,20 @@ class Scanner:
         self.current += 1
         return True
 
-
     def peek(self):
         return "\0" if self.is_at_end() else self.source[self.current]
-
 
     def peek_next(self):
         if self.current + 1 >= len(self.source):
             return "\0"
-
         return self.source[self.current + 1]
-
 
     def advance(self, spaces=1):
         self.current += spaces
         return self.source[self.current - 1]
-    
 
     def add_token(self, type):
         self.add_token_literal(type, None)
-
 
     def add_token_literal(self, type, literal):
         text = self.source[self.start:self.current]

@@ -6,10 +6,8 @@ class ErrorHandler():
         self.had_error = False
         self.had_runtime_error = False
 
-
     def error(self, line, message):
         self.report(line=line, message=message)
-
 
     def token_error(self, token, message):
         if token.type == tt.EOF:
@@ -20,11 +18,9 @@ class ErrorHandler():
                 message=f" at '{token.lexeme}' {message}"
             )
 
-
     def runtime_error(self, error):
         print(error.message, f"[line {error.token.line}]")
         self.had_runtime_error = True
-
 
     def report(self, line, message):
         print(f"[line {line}] Error: {message}")
