@@ -2,8 +2,9 @@ import sys
 
 from ast_printer import print_ast
 from error_handler import ErrorHandler
+from interpreter import Interpreter
 from parser_ import Parser
-from scanner import Scanner 
+from scanner import Scanner
 
 
 class Lox:
@@ -11,6 +12,7 @@ class Lox:
         args = sys.argv
 
         self.error_handler = ErrorHandler()
+        self.interpreter = Interpreter(error_handler=self.error_handler)
 
         if (len(args) > 2):
             print("Usage: python lox [script]")
@@ -27,6 +29,8 @@ class Lox:
 
         if self.had_error():
             sys.exit(65)
+        if self.had_runtime_error():
+            sys.exit(70)
 
 
     def run_prompt(self):
@@ -43,21 +47,22 @@ class Lox:
         scanner = Scanner(source=source, error_handler=self.error_handler)
         tokens = scanner.scan_tokens()
 
-        for token in tokens:
-            print(token)
-
         parser = Parser(tokens=tokens, error_handler=self.error_handler)
         expression = parser.parse()
 
         if self.had_error():
             return
-        
-        print_ast(expression)
 
+        print_ast(expression)
+        self.interpreter.interperet(expression)
 
 
     def had_error(self):
         return self.error_handler.had_error
+
+
+    def had_runtime_error(self):
+        return self.error_handler.had_runtime_error
 
 
 if __name__ == "__main__":

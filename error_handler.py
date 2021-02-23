@@ -4,6 +4,7 @@ from token_type import TokenType as tt
 class ErrorHandler():
     def __init__(self):
         self.had_error = False
+        self.had_runtime_error = False
 
 
     def error(self, line, message):
@@ -18,6 +19,11 @@ class ErrorHandler():
                 line=token.line,
                 message=f" at '{token.lexeme}' {message}"
             )
+
+
+    def runtime_error(self, error):
+        print(error.message, f"[line {error.token.line}]")
+        self.had_runtime_error = True
 
 
     def report(self, line, message):
