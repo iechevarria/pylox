@@ -1,4 +1,5 @@
 import expr as Expr
+import stmt as Stmt
 from token_type import TokenType as tt
 
 
@@ -13,10 +14,22 @@ class Parser:
         self.current = 0
 
     def parse(self):
-        try:
-            return self.expression()
-        except ParseError:
-            return None
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.statement())
+
+        return statements
+
+    def statement(self):
+        if self.match(tt.PRINT):
+            return self.print_statement()
+
+        return self.expression_statement()
+
+    def print_statement(self):
+        value = self.expression()
+        self.consume(tt.SEMICOLON, "Expect ';' after value.")
+        return Stmt.Print(value)
 
     def expression(self):
         return self.equality()

@@ -70,6 +70,11 @@ def binary(expr):
         return float(left) * float(right)
 
 
+def print_(stmt):
+    value = evaluate(stmt.expression)
+    print(stringify(value))
+
+
 def evaluate(expr):
     exprs = {
         "Binary": binary,
@@ -81,14 +86,21 @@ def evaluate(expr):
     return exprs[expr.__class__.__name__](expr)
 
 
+def execute(stmt):
+    stmts = {
+        "Print": print_,
+    }
+    return stmts[stmt.__class__.__name__](stmt)
+
+
 class Interpreter:
     def __init__(self, error_handler):
         self.error_handler = error_handler
 
-    def interperet(self, expression):
+    def interperet(self, statements):
         try:
-            value = evaluate(expression)
-            print(stringify(value))
+            for statement in statements:
+                execute(statement)
         except RuntimeException as e:
             self.error_handler.runtime_error(e)
 
