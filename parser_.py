@@ -30,6 +30,8 @@ class Parser:
             return None
 
     def statement(self):
+        if self.match(tt.FOR):
+            return self.for_statement()
         if self.match(tt.IF):
             return self.if_statement()
         if self.match(tt.PRINT):
@@ -40,6 +42,42 @@ class Parser:
             return Stmt.Block(self.block())
 
         return self.expression_statement()
+
+    def for_statement(self):
+        self.consume(type=tt.LEFT_PAREN, message="Excpect '(' after 'for'.")
+
+        if self.match(tt.SEMICOLON):
+            initializer = None
+        if self.match(tt.VAR):
+            initializer = self.var_declaration()
+        else:
+            initializer = self.expression_statement()
+
+        condition = self.expression() if not self.check(tt.SEMICOLON) else None
+        self.consume(
+            type=tt.SEMICOLON, message="Expect ';' after loop condition."
+        )
+
+        increment = (
+            self.expression() if not self.check(tt.RIGHT_PAREN) else None
+        )
+        self.consume(
+            type=tt.RIGHT_PAREN, message="Expect ')' after for clause."
+        )
+
+        body = self.statement()
+
+        # take for loop statements and desugar them into a while loop
+        if increment is not None:
+            body = Stmt.Block(statements=[body, Stmt.Expression(increment)])
+    
+        condition = Expr.Literal(value=True) if condition is None else condition
+        body = Stmt.While(condition=condition, body=body)
+
+        if initializer is not None:
+            body = Stmt.Block(statements=[initializer, body])
+
+        return body
 
     def if_statement(self):
         self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'if'.")
