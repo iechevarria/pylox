@@ -30,12 +30,30 @@ class Parser:
             return None
 
     def statement(self):
+        if self.match(tt.IF):
+            return self.if_statement()
         if self.match(tt.PRINT):
             return self.print_statement()
+        if self.match(tt.WHILE):
+            return self.while_statement()
         if self.match(tt.LEFT_BRACE):
             return Stmt.Block(self.block())
 
         return self.expression_statement()
+
+    def if_statement(self):
+        self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'if'.")
+        condition = self.expression()
+        self.consume(
+            type=tt.RIGHT_PAREN, message="Expect ')' after if condition"
+        )
+        then_branch = self.statement()
+        else_branch = self.statement() if self.match(tt.ELSE) else None
+        return Stmt.If(
+            condition=condition,
+            then_branch=then_branch,
+            else_branch=else_branch
+        )
 
     def print_statement(self):
         value = self.expression()
@@ -51,6 +69,14 @@ class Parser:
 
         self.consume(tt.SEMICOLON, "Expect ';' after variable declaration")
         return Stmt.Var(name=name, initializer=initializer)
+
+    def while_statement(self):
+        self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'while'.")
+        condition = self.expression()
+        self.consume(type=tt.RIGHT_PAREN, message="Expect ')' after condition.")
+        body = self.statement()
+
+        return Stmt.While(condition=condition, body=body)
 
     def expression_statement(self):
         expr = self.expression()
@@ -69,7 +95,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self):
-        expr = self.equality()
+        expr = self.or_()
 
         if self.match(tt.EQUAL):
             equals = self.previous()
@@ -79,6 +105,26 @@ class Parser:
                 return Expr.Assign(name=expr.name, value=value)
 
             self.error(token=equals, message="Invalid assignment target.")
+
+        return expr
+
+    def or_(self):
+        expr = self.and_()
+
+        while self.match(tt.OR):
+            operator = self.previous()
+            right = self.and_()
+            expr = Expr.Logical(left=expr, operator=operator, right=right)
+        
+        return expr
+
+    def and_(self):
+        expr = self.equality()
+
+        while self.match(tt.AND):
+            operator = self.previous()
+            right = self.and_()
+            expr = Expr.Logical(left=expr, operator=operator, right=right)
 
         return expr
 

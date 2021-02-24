@@ -19,8 +19,10 @@ class Interpreter:
         stmts = {
             "Block": self.block,
             "Expression": self.expression,
+            "If": self.if_,
             "Print": self.print_,
             "Var": self.var,
+            "While": self.while_,
         }
         return stmts[stmt.__class__.__name__](stmt)
 
@@ -42,6 +44,7 @@ class Interpreter:
             "Binary": self.binary,
             "Grouping": self.grouping,
             "Literal": self.literal,
+            "Logical": self.logical,
             "Unary": self.unary,
             "Variable": self.variable,
         }
@@ -51,8 +54,26 @@ class Interpreter:
     def expression(self, stmt):
         self.evaluate(stmt.expression)
 
+    def if_(self, stmt):
+        if is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self.execute(stmt.else_branch)
+
     def literal(self, expr):
         return expr.value
+
+    def logical(self, expr):
+        left = self.evaluate(expr.left)
+
+        if expr.operator.type == tt.OR:
+            if is_truthy(left):
+                return left
+        else:
+            if not is_truthy(left):
+                return left
+
+        return self.evaluate(expr.right)
 
     def grouping(self, expr):
         return self.evaluate(expr.expression)
@@ -122,6 +143,10 @@ class Interpreter:
         if stmt.initializer is not None:
             value = self.evaluate(stmt.initializer)
         self.environment.define(name=stmt.name.lexeme, value=value)
+
+    def while_(self, stmt):
+        while is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
 
     def assign(self, expr):
         value = self.evaluate(expr.value)

@@ -22,13 +22,13 @@ class Environment:
         if name.lexeme in self.values:
             self.values[name.lexeme] = value
             return
-
         if self.enclosing is not None:
             self.enclosing.assign(name=name, value=value)
+            return
 
         raise RuntimeException(
             token=name,
-            message=f"Undefined variable '{name.lexeme}'.",
+            message=f"Cannot assign: undefined variable '{name.lexeme}'.",
         )
 
     def define(self, name, value):

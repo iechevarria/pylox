@@ -33,7 +33,7 @@ class Lox:
     def run_prompt(self):
         while True:
             try:
-                line = input("> ")
+                line = input(">>> ")
             except EOFError:
                 break
             self.run(line)
