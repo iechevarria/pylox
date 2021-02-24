@@ -17,11 +17,24 @@ class Interpreter:
 
     def execute(self, stmt):
         stmts = {
+            "Block": self.block,
             "Expression": self.expression,
             "Print": self.print_,
             "Var": self.var,
         }
         return stmts[stmt.__class__.__name__](stmt)
+
+    def execute_block(self, statements, environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
+
+    def block(self, stmt):
+        self.execute_block(stmt.statements, Environment(self.environment))
 
     def evaluate(self, expr):
         exprs = {
