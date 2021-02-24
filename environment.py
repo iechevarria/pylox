@@ -13,5 +13,15 @@ class Environment:
             message=f"Undefined variable '{name.lexeme}'.",
         )
 
+    def assign(self, name, value):
+        if name.lexeme in self.values:
+            self.values[name.lexeme] = value
+            return
+
+        raise RuntimeException(
+            token=name,
+            message=f"Undefined variable '{name.lexeme}'.",
+        )
+
     def define(self, name, value):
         self.values[name] = value

@@ -17,6 +17,7 @@ class Interpreter:
 
     def execute(self, stmt):
         stmts = {
+            "Expression": self.expression,
             "Print": self.print_,
             "Var": self.var,
         }
@@ -24,6 +25,7 @@ class Interpreter:
 
     def evaluate(self, expr):
         exprs = {
+            "Assign": self.assign,
             "Binary": self.binary,
             "Grouping": self.grouping,
             "Literal": self.literal,
@@ -32,6 +34,9 @@ class Interpreter:
         }
 
         return exprs[expr.__class__.__name__](expr)
+
+    def expression(self, stmt):
+        self.evaluate(stmt.expression)
 
     def literal(self, expr):
         return expr.value
@@ -104,6 +109,11 @@ class Interpreter:
         if stmt.initializer is not None:
             value = self.evaluate(stmt.initializer)
         self.environment.define(name=stmt.name.lexeme, value=value)
+
+    def assign(self, expr):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
 
 
 def check_number_operands(operator, *operands):

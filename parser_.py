@@ -33,7 +33,7 @@ class Parser:
         if self.match(tt.PRINT):
             return self.print_statement()
 
-        return self.expression()
+        return self.expression_statement()
 
     def print_statement(self):
         value = self.expression()
@@ -50,8 +50,27 @@ class Parser:
         self.consume(tt.SEMICOLON, "Expect ';' after variable declaration")
         return Stmt.Var(name=name, initializer=initializer)
 
+    def expression_statement(self):
+        expr = self.expression()
+        self.consume(tt.SEMICOLON, "Expect ';' after expression.")
+        return Stmt.Expression(expr)
+
     def expression(self):
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self):
+        expr = self.equality()
+
+        if self.match(tt.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+
+            if isinstance(expr, Expr.Variable):
+                return Expr.Assign(name=expr.name, value=value)
+
+            self.error(token=equals, message="Invalid assignment target.")
+
+        return expr
 
     def equality(self):
         expr = self.comparison()
