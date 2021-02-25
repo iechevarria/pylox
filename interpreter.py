@@ -2,7 +2,7 @@ from time import time
 
 from callable_ import LoxCallable, LoxFunction
 from environment import Environment
-from errors import RuntimeException
+from exceptions import Return, RuntimeException
 from token_type import TokenType as tt
 
 
@@ -42,6 +42,7 @@ class Interpreter:
             "Function": self.function,
             "If": self.if_,
             "Print": self.print_,
+            "Return": self.return_,
             "Var": self.var,
             "While": self.while_,
         }
@@ -108,7 +109,7 @@ class Interpreter:
         right = self.evaluate(expr.right)
 
         if expr.operator.type == tt.MINUS:
-            check_number_operands(operator=expr.operator, operand=right)
+            check_number_operands(expr.operator, right)
             return - float(right)
         if expr.operator.type == tt.BANG:
             return not is_truthy(right)
@@ -173,7 +174,7 @@ class Interpreter:
                 message=f"Expected {callee.arity()} arguments but got {len(arguments)}."  # noqa: E501
             )
 
-        callee.call(interpreter=self, arguments=arguments)
+        return callee.call(interpreter=self, arguments=arguments)
 
     def variable(self, expr):
         return self.environment.get(expr.name)
@@ -181,6 +182,10 @@ class Interpreter:
     def print_(self, stmt):
         value = self.evaluate(stmt.expression)
         print(stringify(value))
+
+    def return_(self, stmt):
+        value = self.evaluate(stmt.value) if stmt.value is not None else None
+        raise Return(value)
 
     def var(self, stmt):
         value = None

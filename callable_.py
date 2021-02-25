@@ -1,3 +1,4 @@
+from exceptions import Return
 from environment import Environment
 
 
@@ -20,9 +21,12 @@ class LoxFunction(LoxCallable):
             for param, arg in zip(self.declaration.params, arguments)
         ]
 
-        interpreter.execute_block(
-            statements=self.declaration.body, environment=environment
-        )
+        try:
+            interpreter.execute_block(
+                statements=self.declaration.body, environment=environment
+            )
+        except Return as r:
+            return r.value
 
     def arity(self):
         return len(self.declaration.params)
