@@ -22,6 +22,8 @@ class Parser:
 
     def declaration(self):
         try:
+            if self.match(tt.FUN):
+                return self.function("function")
             if self.match(tt.VAR):
                 return self.var_declaration()
             return self.statement()
@@ -70,8 +72,10 @@ class Parser:
         # take for loop statements and desugar them into a while loop
         if increment is not None:
             body = Stmt.Block(statements=[body, Stmt.Expression(increment)])
-    
-        condition = Expr.Literal(value=True) if condition is None else condition
+
+        condition = (
+            Expr.Literal(value=True) if condition is None else condition
+        )
         body = Stmt.While(condition=condition, body=body)
 
         if initializer is not None:
@@ -111,7 +115,9 @@ class Parser:
     def while_statement(self):
         self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'while'.")
         condition = self.expression()
-        self.consume(type=tt.RIGHT_PAREN, message="Expect ')' after condition.")
+        self.consume(
+            type=tt.RIGHT_PAREN, message="Expect ')' after condition."
+        )
         body = self.statement()
 
         return Stmt.While(condition=condition, body=body)
@@ -120,6 +126,34 @@ class Parser:
         expr = self.expression()
         self.consume(tt.SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
+
+    def function(self, kind):
+        name = self.consume(type=tt.IDENTIFIER, message=f"Expect {kind} name.")
+        self.consume(
+            type=tt.LEFT_PAREN, message=f"Expect '(' after {kind} name."
+        )
+        parameters = []
+        if not self.check(tt.RIGHT_PAREN):
+            condition = True
+            while condition:
+                if len(parameters) >= 255:
+                    self.error(
+                        token=self.peek(),
+                        message="Can't have more than 255 parameters."
+                    )
+                parameters.append(self.consume(
+                    type=tt.IDENTIFIER, message="Expect parameter name."
+                ))
+                condition = self.match(tt.COMMA)
+
+        self.consume(
+            type=tt.RIGHT_PAREN, message="Expect ')' after parameters."
+        )
+        self.consume(
+            type=tt.LEFT_BRACE, message=f"Expect '{{' before {kind} body."
+        )
+        body = self.block()
+        return Stmt.Function(name=name, params=parameters, body=body)
 
     def block(self):
         statements = []
@@ -153,7 +187,7 @@ class Parser:
             operator = self.previous()
             right = self.and_()
             expr = Expr.Logical(left=expr, operator=operator, right=right)
-        
+
         return expr
 
     def and_(self):
@@ -212,7 +246,36 @@ class Parser:
             right = self.unary()
             return Expr.Unary(operator, right)
 
-        return self.primary()
+        return self.call()
+
+    def finish_call(self, callee):
+        arguments = []
+        if not self.check(tt.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match(tt.COMMA):
+                arguments.append(self.expression())
+                if len(arguments) >= 255:
+                    self.error(
+                        token=self.peek(),
+                        message="Can't have more than 255 arguments."
+                    )
+
+        paren = self.consume(
+            type=tt.RIGHT_PAREN, message="Expect ')' after arguments."
+        )
+
+        return Expr.Call(callee=callee, paren=paren, expressions=arguments)
+
+    def call(self):
+        expr = self.primary()
+
+        while (True):
+            if self.match(tt.LEFT_PAREN):
+                expr = self.finish_call(expr)
+            else:
+                break
+
+        return expr
 
     def primary(self):
         if self.match(tt.FALSE):
@@ -230,7 +293,9 @@ class Parser:
 
         if self.match(tt.LEFT_PAREN):
             expr = self.expression()
-            self.consume(tt.RIGHT_PAREN, "Expect ')' after expression.")
+            self.consume(
+                type=tt.RIGHT_PAREN, message="Expect ')' after expression."
+            )
             return Expr.Grouping(expression=expr)
 
         raise self.error(token=self.peek(), message="Expect expression.")

@@ -1,0 +1,31 @@
+from environment import Environment
+
+
+class LoxCallable:
+    def call(self, interpreter, arguments):
+        pass
+
+    def arity(self):
+        pass
+
+
+class LoxFunction(LoxCallable):
+    def __init__(self, declaration):
+        self.declaration = declaration
+
+    def call(self, interpreter, arguments):
+        environment = Environment(interpreter.globals)
+        [
+            environment.define(param.lexeme, arg)
+            for param, arg in zip(self.declaration.params, arguments)
+        ]
+
+        interpreter.execute_block(
+            statements=self.declaration.body, environment=environment
+        )
+
+    def arity(self):
+        return len(self.declaration.params)
+
+    def to_string(self):
+        return f"<fn {self.declaration.name.lexeme}>"

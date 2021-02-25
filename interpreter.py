@@ -1,3 +1,6 @@
+from time import time
+
+from callable_ import LoxCallable, LoxFunction
 from environment import Environment
 from errors import RuntimeException
 from token_type import TokenType as tt
@@ -6,7 +9,24 @@ from token_type import TokenType as tt
 class Interpreter:
     def __init__(self, error_handler):
         self.error_handler = error_handler
-        self.environment = Environment()
+        self.globals = Environment()
+        self.environment = self.globals
+
+        # seems out of place here but whatever
+        class Clock(LoxCallable):
+            def __init__(self):
+                pass
+
+            def arity(self):
+                return 0
+
+            def call(self, interpreter, arguments):
+                return time()
+
+            def to_string(self):
+                return "<native fn>"
+
+        self.globals.define("clock", Clock())
 
     def interperet(self, statements):
         try:
@@ -19,6 +39,7 @@ class Interpreter:
         stmts = {
             "Block": self.block,
             "Expression": self.expression,
+            "Function": self.function,
             "If": self.if_,
             "Print": self.print_,
             "Var": self.var,
@@ -42,6 +63,7 @@ class Interpreter:
         exprs = {
             "Assign": self.assign,
             "Binary": self.binary,
+            "Call": self.call,
             "Grouping": self.grouping,
             "Literal": self.literal,
             "Logical": self.logical,
@@ -53,6 +75,10 @@ class Interpreter:
 
     def expression(self, stmt):
         self.evaluate(stmt.expression)
+
+    def function(self, stmt):
+        function = LoxFunction(stmt)
+        self.environment.define(name=stmt.name.lexeme, value=function)
 
     def if_(self, stmt):
         if is_truthy(self.evaluate(stmt.condition)):
@@ -130,6 +156,24 @@ class Interpreter:
         if expr.operator.type == tt.STAR:
             check_number_operands(expr.operator, left, right)
             return float(left) * float(right)
+
+    def call(self, expr):
+        callee = self.evaluate(expr.callee)
+
+        if not isinstance(callee, LoxCallable):
+            raise RuntimeException(
+                expr.paren, message="Can only call functions and classes."
+            )
+
+        arguments = [self.evaluate(arg) for arg in expr.expressions]
+
+        if len(arguments) != callee.arity():
+            raise RuntimeException(
+                token=expr.paren,
+                message=f"Expected {callee.arity()} arguments but got {len(arguments)}."  # noqa: E501
+            )
+
+        callee.call(interpreter=self, arguments=arguments)
 
     def variable(self, expr):
         return self.environment.get(expr.name)
