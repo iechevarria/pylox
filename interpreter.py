@@ -78,7 +78,7 @@ class Interpreter:
         self.evaluate(stmt.expression)
 
     def function(self, stmt):
-        function = LoxFunction(stmt)
+        function = LoxFunction(declaration=stmt, closure=self.environment)
         self.environment.define(name=stmt.name.lexeme, value=function)
 
     def if_(self, stmt):

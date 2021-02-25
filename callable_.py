@@ -11,11 +11,12 @@ class LoxCallable:
 
 
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration):
+    def __init__(self, declaration, closure):
         self.declaration = declaration
+        self.closure = closure
 
     def call(self, interpreter, arguments):
-        environment = Environment(interpreter.globals)
+        environment = Environment(self.closure)
         [
             environment.define(param.lexeme, arg)
             for param, arg in zip(self.declaration.params, arguments)
