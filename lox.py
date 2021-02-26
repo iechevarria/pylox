@@ -8,13 +8,15 @@ from scanner import Scanner
 
 
 class Lox:
-    def __init__(self):
+    def __init__(self, test=False):
         args = sys.argv
 
         self.error_handler = ErrorHandler()
         self.interpreter = Interpreter(error_handler=self.error_handler)
 
-        if (len(args) > 2):
+        if test:
+            return
+        elif (len(args) > 2):
             print("Usage: python lox [script]")
             sys.exit(64)
         elif (len(args) == 2):
@@ -23,7 +25,7 @@ class Lox:
             self.run_prompt()
 
     def run_file(self, path):
-        with open(path, 'r') as f:
+        with open(path, "r", encoding="utf-8") as f:
             self.run(f.read())
 
         if self.had_error():

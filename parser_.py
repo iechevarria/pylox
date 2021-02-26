@@ -52,7 +52,7 @@ class Parser:
 
         if self.match(tt.SEMICOLON):
             initializer = None
-        if self.match(tt.VAR):
+        elif self.match(tt.VAR):
             initializer = self.var_declaration()
         else:
             initializer = self.expression_statement()

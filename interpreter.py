@@ -24,7 +24,7 @@ class Interpreter:
             def call(self, interpreter, arguments):
                 return time()
 
-            def to_string(self):
+            def __str__(self):
                 return "<native fn>"
 
         self.globals.define("clock", Clock())
