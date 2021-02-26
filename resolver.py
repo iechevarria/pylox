@@ -68,7 +68,7 @@ class Resolver:
         self.scopes[-1][name.lexeme] = True
 
     def resolve_local(self, expr, name):
-        for i, scope in enumerate(self.scopes):
+        for i, scope in reversed(list(enumerate(self.scopes))):
             if name.lexeme in scope:
                 self.interpreter.resolve(expr, (len(self.scopes) - 1 - i))
                 return
