@@ -1,5 +1,5 @@
-from token_ import Token
-from token_type import TokenType as tt
+from .token_ import Token
+from .token_type import TokenType as tt
 
 
 KEYWORDS = {

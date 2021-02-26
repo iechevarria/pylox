@@ -1,4 +1,4 @@
-from exceptions import RuntimeException
+from .exceptions import RuntimeException
 
 
 class Environment:

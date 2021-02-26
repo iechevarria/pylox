@@ -1,6 +1,6 @@
-import expr as Expr
-import stmt as Stmt
-from token_type import TokenType as tt
+from . import expr as Expr
+from . import stmt as Stmt
+from .token_type import TokenType as tt
 
 
 class ParseError(Exception):

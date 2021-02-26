@@ -1,10 +1,10 @@
 import sys
 
-from error_handler import ErrorHandler
-from interpreter import Interpreter
-from parser_ import Parser
-from resolver import Resolver
-from scanner import Scanner
+from .error_handler import ErrorHandler
+from .interpreter import Interpreter
+from .parser_ import Parser
+from .resolver import Resolver
+from .scanner import Scanner
 
 
 class Lox:
@@ -62,7 +62,3 @@ class Lox:
 
     def had_runtime_error(self):
         return self.error_handler.had_runtime_error
-
-
-if __name__ == "__main__":
-    Lox()

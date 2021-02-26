@@ -1,5 +1,5 @@
-from exceptions import Return
-from environment import Environment
+from .exceptions import Return
+from .environment import Environment
 
 
 class LoxCallable:

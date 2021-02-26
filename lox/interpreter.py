@@ -1,9 +1,9 @@
 from time import time
 
-from callable_ import LoxCallable, LoxFunction
-from environment import Environment
-from exceptions import Return, RuntimeException
-from token_type import TokenType as tt
+from .callable_ import LoxCallable, LoxFunction
+from .environment import Environment
+from .exceptions import Return, RuntimeException
+from .token_type import TokenType as tt
 
 
 class Interpreter:
