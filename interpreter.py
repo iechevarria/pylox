@@ -11,6 +11,7 @@ class Interpreter:
         self.error_handler = error_handler
         self.globals = Environment()
         self.environment = self.globals
+        self.locals = {}
 
         # seems out of place here but whatever
         class Clock(LoxCallable):
@@ -47,6 +48,9 @@ class Interpreter:
             "While": self.while_,
         }
         return stmts[stmt.__class__.__name__](stmt)
+
+    def resolve(self, expr, depth):
+        self.locals[expr] = depth
 
     def execute_block(self, statements, environment):
         previous = self.environment
@@ -177,7 +181,12 @@ class Interpreter:
         return callee.call(interpreter=self, arguments=arguments)
 
     def variable(self, expr):
-        return self.environment.get(expr.name)
+        return self.look_up_variable(expr.name, expr)
+
+    def look_up_variable(self, name, expr):
+        if expr in self.locals:
+            return self.environment.get_at(self.locals[expr], name.lexeme)
+        return self.globals.get(name)
 
     def print_(self, stmt):
         value = self.evaluate(stmt.expression)
@@ -199,7 +208,12 @@ class Interpreter:
 
     def assign(self, expr):
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+
+        if expr in self.locals:
+            self.environment.assign_at(self.locals[expr], expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
+
         return value
 
 

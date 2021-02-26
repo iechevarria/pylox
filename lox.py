@@ -3,6 +3,7 @@ import sys
 from error_handler import ErrorHandler
 from interpreter import Interpreter
 from parser_ import Parser
+from resolver import Resolver
 from scanner import Scanner
 
 
@@ -46,10 +47,12 @@ class Lox:
         parser = Parser(tokens=tokens, error_handler=self.error_handler)
         statements = parser.parse()
 
+        resolver = Resolver(self.interpreter)
+        resolver.resolve(*statements)
+
         if self.had_error():
             return
 
-        # print_ast(statements)
         self.interpreter.interperet(statements)
 
     def had_error(self):
