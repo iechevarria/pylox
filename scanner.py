@@ -86,6 +86,7 @@ class Scanner:
             self.add_token(token)
         elif char == ">":
             token = tt.GREATER_EQUAL if self.match("=") else tt.GREATER
+            self.add_token(token)
 
         # handle slash
         elif char == "/":
