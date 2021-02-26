@@ -33,14 +33,14 @@ def run_test(test, verbose=True):
 
 def run_tests(dir_):
     passes = 0
-    for i, test in enumerate(pathlib.Path(dir_).glob('*/*.lox')):
+    tests = list(pathlib.Path(dir_).glob('*/*.lox'))
+    for test in tests:
         try:
-            passes += run_test(test, verbose=False)
+            passes += run_test(test, verbose=True)
         except Exception:
-            print(logging.exception(f"\nSuper failure on {test}"))
+            print(logging.exception(f"\nException on {test}"))
         
-    print(f"{passes} / {1 + i}")
+    print(f"{passes} / {len(tests)}")
 
 if __name__ == "__main__":
     run_tests("test")
-    

@@ -249,9 +249,11 @@ def is_truthy(obj):
 
 
 def is_equal(a, b):
-    if (a is None and b is None):
+    if a is None and b is None:
         return True
-    if (a is None):
+    if a is None:
         return False
+    if isinstance(a, bool) or isinstance(b, bool):
+        return a is b
 
     return a == b
