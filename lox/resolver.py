@@ -1,7 +1,15 @@
-# constants for function types
+from .callable_ import INIT
+
+# constants for functions + classes
 NONE = 0
+
+# constants for function types
 FUNCTION = 1
-METHOD = 2
+INITIALIZER = 2
+METHOD = 3
+
+# constants for class types
+CLASS = 1
 
 
 class Resolver:
@@ -9,6 +17,7 @@ class Resolver:
         self.interpreter = interpreter
         self.error_handler = self.interpreter.error_handler
         self.current_function = NONE
+        self.current_class = NONE
         self.scopes = []
 
     def resolve(self, *statements):
@@ -89,11 +98,21 @@ class Resolver:
         self.end_scope()
 
     def class_(self, stmt):
+        enclosing_class = self.current_class
+        self.current_class = CLASS
+
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
+
         for method in stmt.methods:
-            self.resolve_function(function=method, type=METHOD)
+            declaration = INITIALIZER if method.name.lexeme == INIT else METHOD
+            self.resolve_function(function=method, type=declaration)
+
+        self.end_scope()
+        self.current_class = enclosing_class
 
     def expression(self, stmt):
         self.resolve(stmt.expression)
@@ -119,6 +138,12 @@ class Resolver:
                 stmt.keyword, "Can't return from top-level code."
             )
         if stmt.value is not None:
+            if self.current_function == INITIALIZER:
+                self.error_handler.token_error(
+                    token=stmt.keyword,
+                    message="Can't return a value from an initializer.",
+                )
+    
             self.resolve(stmt.value)
 
     def var(self, stmt):
@@ -164,6 +189,14 @@ class Resolver:
     def set_(self, expr):
         self.resolve(expr.value)
         self.resolve(expr.object)
+
+    def this(self, expr):
+        if current_class == NONE:
+            self.error_handler.token_error(
+                token=expr.keyword, 
+                message="Can't use 'this' outside of a class."
+            )
+        self.resolve_local(expr=expr, name=expr.keyword)
 
     def unary(self, expr):
         self.resolve(expr.right)

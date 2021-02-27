@@ -70,7 +70,9 @@ class Interpreter:
 
         methods = {
             method.name.lexeme: LoxFunction(
-                declaration=method, closure=self.environment
+                declaration=method,
+                closure=self.environment,
+                is_initializer=(method.name.lexeme == "init"),
             ) for method in stmt.methods
         }
 
@@ -131,6 +133,9 @@ class Interpreter:
             value = self.evaluate(expr.value)
             obj.set(name=expr.name, value=value)
             return value
+
+    def this(self, expr):
+        return self.look_up_variable(name=expr.keyword, expr=expr)
 
     def grouping(self, expr):
         return self.evaluate(expr.expression)
