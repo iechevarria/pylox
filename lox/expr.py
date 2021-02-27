@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+Array = namedtuple("Array", ("values"))
 Assign = namedtuple("Assign", ("name", "value"))
 Binary = namedtuple("Binary", ("left", "operator", "right"))
 Call = namedtuple("Call", ("callee", "paren", "expressions"))

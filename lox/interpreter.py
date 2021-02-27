@@ -66,6 +66,7 @@ class Interpreter:
 
     def evaluate(self, expr):
         exprs = {
+            "Array": self.array,
             "Assign": self.assign,
             "Binary": self.binary,
             "Call": self.call,
@@ -117,6 +118,10 @@ class Interpreter:
             return - float(right)
         if expr.operator.type == tt.BANG:
             return not is_truthy(right)
+
+    def array(self, expr):
+        elements = [self.evaluate(arg) for arg in expr.values]
+        return elements
 
     def binary(self, expr):
         left = self.evaluate(expr.left)
@@ -235,6 +240,9 @@ def stringify(obj):
 
     if isinstance(obj, bool):
         return str(obj).lower()
+
+    if isinstance(obj, list):
+        return "[" + ", ".join([stringify(e) for e in obj]) + "]"
 
     return str(obj)
 

@@ -36,7 +36,7 @@ class Lox:
     def run_prompt(self):
         while True:
             try:
-                line = input(">>> ")
+                line = input("> ")
             except EOFError:
                 break
             self.run(line)
@@ -49,11 +49,11 @@ class Lox:
         parser = Parser(tokens=tokens, error_handler=self.error_handler)
         statements = parser.parse()
 
-        resolver = Resolver(self.interpreter)
-        resolver.resolve(*statements)
-
         if self.had_error():
             return
+
+        resolver = Resolver(self.interpreter)
+        resolver.resolve(*statements)
 
         self.interpreter.interperet(statements)
 

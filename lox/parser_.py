@@ -288,7 +288,19 @@ class Parser:
 
         return expr
 
+    def array(self):
+        elements = []
+        if not self.check(tt.RIGHT_BRACKET):
+            elements.append(self.expression())
+            while self.match(tt.COMMA):
+                elements.append(self.expression())
+        self.consume(tt.RIGHT_BRACKET, "Expect ']' after array creation")
+
+        return Expr.Array(values=elements)
+
     def primary(self):
+        if self.match(tt.LEFT_BRACKET):
+            return self.array()
         if self.match(tt.FALSE):
             return Expr.Literal(value=False)
         if self.match(tt.TRUE):

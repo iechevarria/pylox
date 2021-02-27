@@ -18,6 +18,7 @@ class Resolver:
             "While": self.while_,
 
             # expressions
+            "Array": self.array,
             "Assign": self.assign,
             "Binary": self.binary,
             "Call": self.call,
@@ -113,6 +114,10 @@ class Resolver:
     def while_(self, stmt):
         self.resolve(stmt.condition)
         self.resolve(stmt.body)
+
+    def array(self, expr):
+        for element in expr.values:
+            self.resolve(element)
 
     def assign(self, expr):
         self.resolve(expr.value)

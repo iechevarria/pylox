@@ -61,6 +61,10 @@ class Scanner:
             self.add_token(tt.LEFT_BRACE)
         elif char == "}":
             self.add_token(tt.RIGHT_BRACE)
+        elif char == "[":
+            self.add_token(tt.LEFT_BRACKET)
+        elif char == "]":
+            self.add_token(tt.RIGHT_BRACKET)
         elif char == ",":
             self.add_token(tt.COMMA)
         elif char == ".":

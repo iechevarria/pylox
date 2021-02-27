@@ -1,4 +1,3 @@
-import os
 import io
 from contextlib import redirect_stdout
 import logging
@@ -12,7 +11,7 @@ def run_test(test, verbose=True):
         source = f.read()
 
     expected = "\n".join([
-        line.split("// expect: ")[1] for line in source.split("\n") 
+        line.split("// expect: ")[1] for line in source.split("\n")
         if "// expect:" in line
     ])
 
@@ -20,7 +19,7 @@ def run_test(test, verbose=True):
     with redirect_stdout(captured_stdout):
         Lox(test=True).run(source=source)
 
-    actual = captured_stdout.getvalue()[:-1] 
+    actual = captured_stdout.getvalue()[:-1]
     if actual != expected:
         print(f"{test} failed")
         if verbose:
@@ -39,8 +38,9 @@ def run_tests(dir_):
             passes += run_test(test, verbose=True)
         except Exception:
             print(logging.exception(f"\nException on {test}"))
-        
-    print(f"{passes} / {len(tests)}")
+
+    print(f"{passes} / {len(tests)} tests passed")
+
 
 if __name__ == "__main__":
     run_tests("test")
