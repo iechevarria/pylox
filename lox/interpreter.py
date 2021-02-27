@@ -1,9 +1,8 @@
 from time import time
 
-from .callable_ import LoxCallable, LoxFunction
+from .callable_ import LoxCallable, LoxClass, LoxFunction, LoxInstance
 from .environment import Environment
 from .exceptions import Return, RuntimeException
-from .lox_class import LoxClass
 from .token_type import TokenType as tt
 
 
@@ -68,7 +67,14 @@ class Interpreter:
 
     def class_(self, stmt):
         self.environment.define(name=stmt.name.lexeme, value=None)
-        class_ = LoxClass(name=stmt.name.lexeme)
+
+        methods = {
+            method.name.lexeme: LoxFunction(
+                declaration=method, closure=self.environment
+            ) for method in stmt.methods
+        }
+
+        class_ = LoxClass(name=stmt.name.lexeme, methods=methods)
         self.environment.assign(name=stmt.name, value=class_)
 
     def evaluate(self, expr):
@@ -77,6 +83,7 @@ class Interpreter:
             "Assign": self.assign,
             "Binary": self.binary,
             "Call": self.call,
+            "Get": self.get,
             "Grouping": self.grouping,
             "Literal": self.literal,
             "Logical": self.logical,
@@ -113,6 +120,17 @@ class Interpreter:
                 return left
 
         return self.evaluate(expr.right)
+
+    def set_(self, expr):
+        obj = self.evaluate(expr.object)
+
+        if not isinstance(obj, LoxInstance):
+            raise RuntimeException(
+                token=expr.name, message="Only instances have fields."
+            )
+            value = self.evaluate(expr.value)
+            obj.set(name=expr.name, value=value)
+            return value
 
     def grouping(self, expr):
         return self.evaluate(expr.expression)
@@ -191,6 +209,15 @@ class Interpreter:
             )
 
         return callee.call(interpreter=self, arguments=arguments)
+
+    def get(self, expr):
+        obj = self.evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+
+        raise RuntimeException(
+            token=expr.name, message="Only instances have properties."
+        )
 
     def variable(self, expr):
         return self.look_up_variable(expr.name, expr)

@@ -200,8 +200,13 @@ class Parser:
 
             if isinstance(expr, Expr.Variable):
                 return Expr.Assign(name=expr.name, value=value)
+            elif isinstance(expr, Expr.Get):
+                return Expr.Set(
+                    object=expr.object, name=expr.name, value=value
+                )
 
             self.error(token=equals, message="Invalid assignment target.")
+
 
         return expr
 
@@ -297,6 +302,12 @@ class Parser:
         while (True):
             if self.match(tt.LEFT_PAREN):
                 expr = self.finish_call(expr)
+            elif self.match(tt.DOT):
+                name = self.consume(
+                    type=tt.IDENTIFIER,
+                    message="Expect property name after '.'."
+                )
+                expr = Expr.Get(object=expr, name=name)
             else:
                 break
 

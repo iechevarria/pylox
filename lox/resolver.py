@@ -1,8 +1,14 @@
+# constants for function types
+NONE = 0
+FUNCTION = 1
+METHOD = 2
+
+
 class Resolver:
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.error_handler = self.interpreter.error_handler
-        self.current_function = None
+        self.current_function = NONE
         self.scopes = []
 
     def resolve(self, *statements):
@@ -23,9 +29,11 @@ class Resolver:
             "Assign": self.assign,
             "Binary": self.binary,
             "Call": self.call,
+            "Get": self.get,
             "Grouping": self.grouping,
             "Literal": self.literal,
             "Logical": self.logical,
+            "Set": self.set_,
             "Unary": self.unary,
             "Variable": self.variable,
         }
@@ -84,6 +92,9 @@ class Resolver:
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        for method in stmt.methods:
+            self.resolve_function(function=method, type=METHOD)
+
     def expression(self, stmt):
         self.resolve(stmt.expression)
 
@@ -91,7 +102,7 @@ class Resolver:
         self.declare(stmt.name)
         self.define(stmt.name)
 
-        self.resolve_function(stmt, "FUNCTION")
+        self.resolve_function(function=stmt, type=FUNCTION)
 
     def if_(self, stmt):
         self.resolve(stmt.condition)
@@ -103,7 +114,7 @@ class Resolver:
         self.resolve(stmt.expression)
 
     def return_(self, stmt):
-        if self.current_function is None:
+        if self.current_function == NONE:
             self.error_handler.token_error(
                 stmt.keyword, "Can't return from top-level code."
             )
@@ -137,6 +148,9 @@ class Resolver:
         for arg in expr.expressions:
             self.resolve(arg)
 
+    def get(self, expr):
+        self.resolve(expr.object)
+
     def grouping(self, expr):
         self.resolve(expr.expression)
 
@@ -146,6 +160,10 @@ class Resolver:
     def logical(self, expr):
         self.resolve(expr.left)
         self.resolve(expr.right)
+
+    def set_(self, expr):
+        self.resolve(expr.value)
+        self.resolve(expr.object)
 
     def unary(self, expr):
         self.resolve(expr.right)
