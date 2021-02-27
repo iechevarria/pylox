@@ -3,6 +3,7 @@ from time import time
 from .callable_ import LoxCallable, LoxFunction
 from .environment import Environment
 from .exceptions import Return, RuntimeException
+from .lox_class import LoxClass
 from .token_type import TokenType as tt
 
 
@@ -39,6 +40,7 @@ class Interpreter:
     def execute(self, stmt):
         stmts = {
             "Block": self.block,
+            "Class": self.class_,
             "Expression": self.expression,
             "Function": self.function,
             "If": self.if_,
@@ -63,6 +65,11 @@ class Interpreter:
 
     def block(self, stmt):
         self.execute_block(stmt.statements, Environment(self.environment))
+
+    def class_(self, stmt):
+        self.environment.define(name=stmt.name.lexeme, value=None)
+        class_ = LoxClass(name=stmt.name.lexeme)
+        self.environment.assign(name=stmt.name, value=class_)
 
     def evaluate(self, expr):
         exprs = {

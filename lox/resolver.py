@@ -9,6 +9,7 @@ class Resolver:
         resolvers = {
             # statements
             "Block": self.block,
+            "Class": self.class_,
             "Expression": self.expression,
             "Function": self.function,
             "If": self.if_,
@@ -78,6 +79,10 @@ class Resolver:
         self.begin_scope()
         self.resolve(*stmt.statements)
         self.end_scope()
+
+    def class_(self, stmt):
+        self.declare(stmt.name)
+        self.define(stmt.name)
 
     def expression(self, stmt):
         self.resolve(stmt.expression)

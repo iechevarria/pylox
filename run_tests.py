@@ -1,7 +1,7 @@
 import io
-from contextlib import redirect_stdout
 import logging
 import pathlib
+from contextlib import redirect_stdout
 
 from lox import Lox
 
@@ -35,7 +35,7 @@ def run_tests(dir_):
     tests = list(pathlib.Path(dir_).glob('*/*.lox'))
     for test in tests:
         try:
-            passes += run_test(test, verbose=True)
+            passes += run_test(test, verbose=False)
         except Exception:
             print(logging.exception(f"\nException on {test}"))
 
