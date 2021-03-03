@@ -10,6 +10,7 @@ METHOD = 3
 
 # constants for class types
 CLASS = 1
+SUBCLASS = 2
 
 
 class Resolver:
@@ -43,6 +44,7 @@ class Resolver:
             "Literal": self.literal,
             "Logical": self.logical,
             "Set": self.set_,
+            "Super": self.super_,
             "Unary": self.unary,
             "Variable": self.variable,
         }
@@ -104,6 +106,21 @@ class Resolver:
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        if (
+            (stmt.superclass is not None)
+            and (stmt.name.lexeme == stmt.superclass.name.lexeme)
+        ):
+            self.error_handler.token_error(
+                token=stmt.superclass.name,
+                message="A class can't inherit from itself."
+            )
+
+        if stmt.superclass is not None:
+            self.current_class = SUBCLASS
+            self.resolve(stmt.superclass)
+            self.begin_scope()
+            self.scopes[-1]["super"] = True
+
         self.begin_scope()
         self.scopes[-1]["this"] = True
 
@@ -112,6 +129,9 @@ class Resolver:
             self.resolve_function(function=method, type=declaration)
 
         self.end_scope()
+        if stmt.superclass is not None:
+            self.end_scope()
+
         self.current_class = enclosing_class
 
     def expression(self, stmt):
@@ -143,7 +163,7 @@ class Resolver:
                     token=stmt.keyword,
                     message="Can't return a value from an initializer.",
                 )
-    
+
             self.resolve(stmt.value)
 
     def var(self, stmt):
@@ -190,10 +210,24 @@ class Resolver:
         self.resolve(expr.value)
         self.resolve(expr.object)
 
-    def this(self, expr):
-        if current_class == NONE:
+    def super_(self, expr):
+        if self.current_class == NONE:
             self.error_handler.token_error(
-                token=expr.keyword, 
+                token=expr.keyword,
+                message="Can't use 'super' outside of a class."
+            )
+        elif self.current_class != SUBCLASS:
+            self.error_handler.token_error(
+                token=expr.keyword,
+                message="Can't use 'super' in a class with no superclass."
+            )
+
+        self.resolve_local(expr=expr, name=expr.keyword)
+
+    def this(self, expr):
+        if self.current_class == NONE:
+            self.error_handler.token_error(
+                token=expr.keyword,
                 message="Can't use 'this' outside of a class."
             )
         self.resolve_local(expr=expr, name=expr.keyword)

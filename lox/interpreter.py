@@ -66,7 +66,20 @@ class Interpreter:
         self.execute_block(stmt.statements, Environment(self.environment))
 
     def class_(self, stmt):
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self.evaluate(stmt.superclass)
+            if not isinstance(superclass, LoxClass):
+                raise RuntimeException(
+                    token=stmt.superclass.name,
+                    message="Superclass must be a class."
+                )
+
         self.environment.define(name=stmt.name.lexeme, value=None)
+
+        if stmt.superclass is not None:
+            self.environment = Environment(enclosing=self.environment)
+            self.environment.define(name="super", value=superclass)
 
         methods = {
             method.name.lexeme: LoxFunction(
@@ -76,7 +89,13 @@ class Interpreter:
             ) for method in stmt.methods
         }
 
-        class_ = LoxClass(name=stmt.name.lexeme, methods=methods)
+        class_ = LoxClass(
+            name=stmt.name.lexeme, superclass=superclass, methods=methods
+        )
+
+        if superclass is not None:
+            self.environment = self.environment.enclosing
+
         self.environment.assign(name=stmt.name, value=class_)
 
     def evaluate(self, expr):
@@ -89,6 +108,7 @@ class Interpreter:
             "Grouping": self.grouping,
             "Literal": self.literal,
             "Logical": self.logical,
+            "Super": self.super_,
             "Unary": self.unary,
             "Variable": self.variable,
         }
@@ -133,6 +153,21 @@ class Interpreter:
             value = self.evaluate(expr.value)
             obj.set(name=expr.name, value=value)
             return value
+
+    def super_(self, expr):
+        distance = self.locals[expr]
+        superclass = self.environment.get_at(distance=distance, name="super")
+        # a bit of a hack to get the instance itself
+        obj = self.environment.get_at(distance=distance - 1, name="this")
+        method = superclass.find_method(name=expr.method.lexeme)
+
+        if method is None:
+            raise RuntimeException(
+                token=expr.method,
+                message=f"Undefined property '{expr.method.lexeme}'.",
+            )
+
+        return method.bind(obj)
 
     def this(self, expr):
         return self.look_up_variable(name=expr.keyword, expr=expr)

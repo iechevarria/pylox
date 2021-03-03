@@ -19,11 +19,11 @@ class LoxFunction(LoxCallable):
         self.is_initializer = is_initializer
 
     def bind(self, instance):
-        environment = Environmnet(self.closure)
+        environment = Environment(self.closure)
         environment.define("this", instance)
         return LoxFunction(
             declaration=self.declaration,
-            environment=self.environment,
+            closure=environment,
             is_initializer=self.is_initializer
         )
 
@@ -52,17 +52,19 @@ class LoxFunction(LoxCallable):
 
 
 class LoxClass(LoxCallable):
-    def __init__(self, name, methods):
+    def __init__(self, name, superclass, methods):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def call(self, interpreter, arguments):
+        instance = LoxInstance(self)
         intializer = self.find_method(name=INIT)
         if intializer is not None:
             intializer.bind(instance).call(
                 interpreter=interpreter, arguments=arguments
             )
-        return LoxInstance(self)
+        return instance
 
     def arity(self):
         initializer = self.find_method(INIT)
@@ -71,7 +73,11 @@ class LoxClass(LoxCallable):
         return initializer.arity()
 
     def find_method(self, name):
-        return self.methods[name] if name in self.methods else None
+        if name in self.methods:
+            return self.methods[name]
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
+        return None
 
     def __str__(self):
         return self.name

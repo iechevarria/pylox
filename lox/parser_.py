@@ -35,6 +35,12 @@ class Parser:
 
     def class_declaration(self):
         name = self.consume(tt.IDENTIFIER, "Expect class name.")
+
+        superclass = None
+        if self.match(tt.LESS):
+            self.consume(tt.IDENTIFIER, "Expect superclass name.")
+            superclass = Expr.Variable(self.previous())
+
         self.consume(tt.LEFT_BRACE, "Expect '{' before class body.")
 
         methods = []
@@ -43,7 +49,7 @@ class Parser:
 
         self.consume(tt.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return Stmt.Class(name=name, methods=methods)
+        return Stmt.Class(name=name, superclass=superclass, methods=methods)
 
     def statement(self):
         if self.match(tt.FOR):
@@ -207,7 +213,6 @@ class Parser:
 
             self.error(token=equals, message="Invalid assignment target.")
 
-
         return expr
 
     def or_(self):
@@ -335,6 +340,14 @@ class Parser:
 
         if self.match(tt.NUMBER, tt.STRING):
             return Expr.Literal(self.previous().literal)
+
+        if self.match(tt.SUPER):
+            keyword = self.previous()
+            self.consume(type=tt.DOT, message="Expect '.' after 'super'.")
+            method = self.consume(
+                type=tt.IDENTIFIER, message="Expect superclass method name."
+            )
+            return Expr.Super(keyword=keyword, method=method)
 
         if self.match(tt.THIS):
             return Expr.This(self.previous())
