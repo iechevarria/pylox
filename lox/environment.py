@@ -28,7 +28,7 @@ class Environment:
 
         raise RuntimeException(
             token=name,
-            message=f"Cannot assign: undefined variable '{name.lexeme}'.",
+            message=f"Undefined variable '{name.lexeme}'.",
         )
 
     def define(self, name, value):

@@ -45,6 +45,7 @@ class Resolver:
             "Logical": self.logical,
             "Set": self.set_,
             "Super": self.super_,
+            "This": self.this,
             "Unary": self.unary,
             "Variable": self.variable,
         }
