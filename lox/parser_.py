@@ -299,7 +299,9 @@ class Parser:
             type=tt.RIGHT_PAREN, message="Expect ')' after arguments."
         )
 
-        return Expr.Call(callee=callee, paren=paren, expressions=arguments)
+        return Expr.Call(
+            callee=callee, paren=paren, expressions=tuple(arguments)
+        )
 
     def call(self):
         expr = self.primary()
