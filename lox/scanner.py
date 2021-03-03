@@ -33,7 +33,7 @@ class Scanner:
         self.line = 1
 
     def error(self, line, message):
-        self.error_handler.error(line=line, message=message)
+        self.error_handler.scanner_error(line=line, message=message)
 
     def is_at_end(self):
         return self.current >= len(self.source)

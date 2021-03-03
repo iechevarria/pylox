@@ -60,7 +60,7 @@ def run_test(test, verbose=True):
         actual = "\n".join([
             actual.split("[")[0].strip() for line in actual.split("\n")
         ])
-    
+
     if actual.strip() == expected.strip():
         return 1
     else:
