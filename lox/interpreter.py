@@ -216,8 +216,8 @@ class Interpreter:
         if expr.operator.type == tt.PLUS:
             if isinstance(left, float) and isinstance(right, float):
                 return left + right
-            elif isinstance(left, str) or isinstance(right, str):
-                return stringify(left) + stringify(right)
+            elif isinstance(left, str) and isinstance(right, str):
+                return left + right
             raise RuntimeException(
                 token=expr.operator,
                 message="Operands must be two numbers or two strings.",
@@ -301,7 +301,12 @@ class Interpreter:
 def check_number_operands(operator, *operands):
     if all(isinstance(operand, float) for operand in operands):
         return
-    raise RuntimeException(token=operator, message="Operands must be numbers.")
+
+    message = (
+        "Operands must be numbers." if len(operands) > 1
+        else "Operand must be a number."
+    ) 
+    raise RuntimeException(token=operator, message=message)
 
 
 def stringify(obj):

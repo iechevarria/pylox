@@ -34,7 +34,7 @@ def run_test(test, verbose=True):
             search = TOKEN_REGEX.search(line)
             if search:
                 expected_type = TOKEN_ERROR
-                expected = search.group(0).strip()
+                expected += search.group(0).strip() + "\n"
 
     # get runtime error
     if not expected:
@@ -42,7 +42,7 @@ def run_test(test, verbose=True):
             search = RUNTIME_REGEX.search(line)
             if search:
                 expected_type = RUNTIME_ERROR
-                expected = search.group(0).strip()
+                expected += search.group(0).strip() + "\n"
 
     # actually run the thing
     captured_stdout = io.StringIO()
@@ -51,13 +51,17 @@ def run_test(test, verbose=True):
 
     # process + compare output to expected
     actual = captured_stdout.getvalue()[:-1]
-
     if expected_type == TOKEN_ERROR:
-        actual = TOKEN_REGEX.search(actual).group(0).strip()
+        actual = "\n".join([
+            TOKEN_REGEX.search(line).group(0).strip()
+            for line in actual.split("\n")
+        ])
     if expected_type == RUNTIME_ERROR:
-        actual = actual.split("[")[0].strip()
-
-    if actual == expected:
+        actual = "\n".join([
+            actual.split("[")[0].strip() for line in actual.split("\n")
+        ])
+    
+    if actual.strip() == expected.strip():
         return 1
     else:
         print(f"{test} failed")
