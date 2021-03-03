@@ -1,24 +1,24 @@
 from .token_ import Token
-from .token_type import TokenType as tt
+from .token_type import *
 
 
 KEYWORDS = {
-    "and": tt.AND,
-    "class": tt.CLASS,
-    "else": tt.ELSE,
-    "false": tt.FALSE,
-    "for": tt.FOR,
-    "fun": tt.FUN,
-    "if": tt.IF,
-    "nil": tt.NIL,
-    "or": tt.OR,
-    "print": tt.PRINT,
-    "return": tt.RETURN,
-    "super": tt.SUPER,
-    "this": tt.THIS,
-    "true": tt.TRUE,
-    "var": tt.VAR,
-    "while": tt.WHILE,
+    "and": AND,
+    "class": CLASS,
+    "else": ELSE,
+    "false": FALSE,
+    "for": FOR,
+    "fun": FUN,
+    "if": IF,
+    "nil": NIL,
+    "or": OR,
+    "print": PRINT,
+    "return": RETURN,
+    "super": SUPER,
+    "this": THIS,
+    "true": TRUE,
+    "var": VAR,
+    "while": WHILE,
 }
 
 
@@ -44,7 +44,7 @@ class Scanner:
             self.scan_token()
 
         self.tokens.append(
-            Token(type=tt.EOF, lexeme="", literal=None, line=self.line)
+            Token(type=EOF, lexeme="", literal=None, line=self.line)
         )
 
         return self.tokens
@@ -54,42 +54,42 @@ class Scanner:
 
         # really wish PEP 636 was in for this part
         if char == "(":
-            self.add_token(tt.LEFT_PAREN)
+            self.add_token(LEFT_PAREN)
         elif char == ")":
-            self.add_token(tt.RIGHT_PAREN)
+            self.add_token(RIGHT_PAREN)
         elif char == "{":
-            self.add_token(tt.LEFT_BRACE)
+            self.add_token(LEFT_BRACE)
         elif char == "}":
-            self.add_token(tt.RIGHT_BRACE)
+            self.add_token(RIGHT_BRACE)
         elif char == "[":
-            self.add_token(tt.LEFT_BRACKET)
+            self.add_token(LEFT_BRACKET)
         elif char == "]":
-            self.add_token(tt.RIGHT_BRACKET)
+            self.add_token(RIGHT_BRACKET)
         elif char == ",":
-            self.add_token(tt.COMMA)
+            self.add_token(COMMA)
         elif char == ".":
-            self.add_token(tt.DOT)
+            self.add_token(DOT)
         elif char == "-":
-            self.add_token(tt.MINUS)
+            self.add_token(MINUS)
         elif char == "+":
-            self.add_token(tt.PLUS)
+            self.add_token(PLUS)
         elif char == ";":
-            self.add_token(tt.SEMICOLON)
+            self.add_token(SEMICOLON)
         elif char == "*":
-            self.add_token(tt.STAR)
+            self.add_token(STAR)
 
         # 1 or 2 token stuff
         elif char == "!":
-            token = tt.BANG_EQUAL if self.match("=") else tt.BANG
+            token = BANG_EQUAL if self.match("=") else BANG
             self.add_token(token)
         elif char == "=":
-            token = tt.EQUAL_EQUAL if self.match("=") else tt.EQUAL
+            token = EQUAL_EQUAL if self.match("=") else EQUAL
             self.add_token(token)
         elif char == "<":
-            token = tt.LESS_EQUAL if self.match("=") else tt.LESS
+            token = LESS_EQUAL if self.match("=") else LESS
             self.add_token(token)
         elif char == ">":
-            token = tt.GREATER_EQUAL if self.match("=") else tt.GREATER
+            token = GREATER_EQUAL if self.match("=") else GREATER
             self.add_token(token)
 
         # handle slash
@@ -100,7 +100,7 @@ class Scanner:
             elif self.match('*'):
                 self.block_comment()
             else:
-                self.add_token(tt.SLASH)
+                self.add_token(SLASH)
 
         # handle whitespace stuff
         elif char in [" ", "\r", "\t"]:
@@ -130,7 +130,7 @@ class Scanner:
         if text in KEYWORDS:
             self.add_token(KEYWORDS[text])
         else:
-            self.add_token(tt.IDENTIFIER)
+            self.add_token(IDENTIFIER)
 
     def number(self):
         while is_digit(self.peek()):
@@ -142,7 +142,7 @@ class Scanner:
                 self.advance()
 
         self.add_token_literal(
-            type=tt.NUMBER, literal=float(self.source[self.start:self.current])
+            type=NUMBER, literal=float(self.source[self.start:self.current])
         )
 
     def string(self):
@@ -160,7 +160,7 @@ class Scanner:
 
         # trim surrounding quotes
         value = self.source[self.start + 1:self.current - 1]
-        self.add_token_literal(type=tt.STRING, literal=value)
+        self.add_token_literal(type=STRING, literal=value)
 
     def block_comment(self):
         while (

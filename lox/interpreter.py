@@ -3,7 +3,7 @@ from .callable_ import (
 )
 from .environment import Environment
 from .exceptions import Return, RuntimeException
-from .token_type import TokenType as tt
+from .token_type import *
 
 
 class Interpreter:
@@ -174,26 +174,26 @@ class Interpreter:
         left = self.evaluate(expr=expr.left)
         right = self.evaluate(expr=expr.right)
 
-        if expr.operator.type == tt.GREATER:
+        if expr.operator.type == GREATER:
             check_number_operands(expr.operator, left, right)
             return left > right
-        if expr.operator.type == tt.GREATER_EQUAL:
+        if expr.operator.type == GREATER_EQUAL:
             check_number_operands(expr.operator, left, right)
             return left >= right
-        if expr.operator.type == tt.LESS:
+        if expr.operator.type == LESS:
             check_number_operands(expr.operator, left, right)
             return left < right
-        if expr.operator.type == tt.LESS_EQUAL:
+        if expr.operator.type == LESS_EQUAL:
             check_number_operands(expr.operator, left, right)
             return left <= right
-        if expr.operator.type == tt.BANG_EQUAL:
+        if expr.operator.type == BANG_EQUAL:
             return not is_equal(a=left, b=right)
-        if expr.operator.type == tt.EQUAL_EQUAL:
+        if expr.operator.type == EQUAL_EQUAL:
             return is_equal(a=left, b=right)
-        if expr.operator.type == tt.MINUS:
+        if expr.operator.type == MINUS:
             check_number_operands(expr.operator, left, right)
             return float(left) - float(right)
-        if expr.operator.type == tt.PLUS:
+        if expr.operator.type == PLUS:
             if isinstance(left, float) and isinstance(right, float):
                 return left + right
             elif isinstance(left, str) and isinstance(right, str):
@@ -202,7 +202,7 @@ class Interpreter:
                 token=expr.operator,
                 message="Operands must be two numbers or two strings.",
             )
-        if expr.operator.type == tt.SLASH:
+        if expr.operator.type == SLASH:
             check_number_operands(expr.operator, left, right)
             if right == 0.0:
                 raise RuntimeException(
@@ -210,7 +210,7 @@ class Interpreter:
                     message="Division by zero error.",
                 )
             return float(left) / float(right)
-        if expr.operator.type == tt.STAR:
+        if expr.operator.type == STAR:
             check_number_operands(expr.operator, left, right)
             return float(left) * float(right)
 
@@ -240,7 +240,7 @@ class Interpreter:
     def logical(self, expr):
         left = self.evaluate(expr.left)
 
-        if expr.operator.type == tt.OR:
+        if expr.operator.type == OR:
             if is_truthy(left):
                 return left
         else:
@@ -285,10 +285,10 @@ class Interpreter:
     def unary(self, expr):
         right = self.evaluate(expr.right)
 
-        if expr.operator.type == tt.MINUS:
+        if expr.operator.type == MINUS:
             check_number_operands(expr.operator, right)
             return - float(right)
-        if expr.operator.type == tt.BANG:
+        if expr.operator.type == BANG:
             return not is_truthy(right)
 
     def get(self, expr):

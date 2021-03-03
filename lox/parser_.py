@@ -1,6 +1,6 @@
 from . import expr as Expr
 from . import stmt as Stmt
-from .token_type import TokenType as tt
+from .token_type import *
 
 
 class ParseError(Exception):
@@ -22,11 +22,11 @@ class Parser:
 
     def declaration(self):
         try:
-            if self.match(tt.CLASS):
+            if self.match(CLASS):
                 return self.class_declaration()
-            if self.match(tt.FUN):
+            if self.match(FUN):
                 return self.function("function")
-            if self.match(tt.VAR):
+            if self.match(VAR):
                 return self.var_declaration()
             return self.statement()
         except ParseError:
@@ -34,59 +34,59 @@ class Parser:
             return None
 
     def class_declaration(self):
-        name = self.consume(tt.IDENTIFIER, "Expect class name.")
+        name = self.consume(IDENTIFIER, "Expect class name.")
 
         superclass = None
-        if self.match(tt.LESS):
-            self.consume(tt.IDENTIFIER, "Expect superclass name.")
+        if self.match(LESS):
+            self.consume(IDENTIFIER, "Expect superclass name.")
             superclass = Expr.Variable(self.previous())
 
-        self.consume(tt.LEFT_BRACE, "Expect '{' before class body.")
+        self.consume(LEFT_BRACE, "Expect '{' before class body.")
 
         methods = []
-        while not self.check(tt.RIGHT_BRACE) and not self.is_at_end():
+        while not self.check(RIGHT_BRACE) and not self.is_at_end():
             methods.append(self.function("method"))
 
-        self.consume(tt.RIGHT_BRACE, "Expect '}' after class body.")
+        self.consume(RIGHT_BRACE, "Expect '}' after class body.")
 
         return Stmt.Class(name=name, superclass=superclass, methods=methods)
 
     def statement(self):
-        if self.match(tt.FOR):
+        if self.match(FOR):
             return self.for_statement()
-        if self.match(tt.IF):
+        if self.match(IF):
             return self.if_statement()
-        if self.match(tt.PRINT):
+        if self.match(PRINT):
             return self.print_statement()
-        if self.match(tt.RETURN):
+        if self.match(RETURN):
             return self.return_statement()
-        if self.match(tt.WHILE):
+        if self.match(WHILE):
             return self.while_statement()
-        if self.match(tt.LEFT_BRACE):
+        if self.match(LEFT_BRACE):
             return Stmt.Block(self.block())
 
         return self.expression_statement()
 
     def for_statement(self):
-        self.consume(type=tt.LEFT_PAREN, message="Excpect '(' after 'for'.")
+        self.consume(type=LEFT_PAREN, message="Excpect '(' after 'for'.")
 
-        if self.match(tt.SEMICOLON):
+        if self.match(SEMICOLON):
             initializer = None
-        elif self.match(tt.VAR):
+        elif self.match(VAR):
             initializer = self.var_declaration()
         else:
             initializer = self.expression_statement()
 
-        condition = self.expression() if not self.check(tt.SEMICOLON) else None
+        condition = self.expression() if not self.check(SEMICOLON) else None
         self.consume(
-            type=tt.SEMICOLON, message="Expect ';' after loop condition."
+            type=SEMICOLON, message="Expect ';' after loop condition."
         )
 
         increment = (
-            self.expression() if not self.check(tt.RIGHT_PAREN) else None
+            self.expression() if not self.check(RIGHT_PAREN) else None
         )
         self.consume(
-            type=tt.RIGHT_PAREN, message="Expect ')' after for clause."
+            type=RIGHT_PAREN, message="Expect ')' after for clause."
         )
 
         body = self.statement()
@@ -106,13 +106,13 @@ class Parser:
         return body
 
     def if_statement(self):
-        self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'if'.")
+        self.consume(type=LEFT_PAREN, message="Expect '(' after 'if'.")
         condition = self.expression()
         self.consume(
-            type=tt.RIGHT_PAREN, message="Expect ')' after if condition"
+            type=RIGHT_PAREN, message="Expect ')' after if condition"
         )
         then_branch = self.statement()
-        else_branch = self.statement() if self.match(tt.ELSE) else None
+        else_branch = self.statement() if self.match(ELSE) else None
         return Stmt.If(
             condition=condition,
             then_branch=then_branch,
@@ -121,33 +121,33 @@ class Parser:
 
     def print_statement(self):
         value = self.expression()
-        self.consume(tt.SEMICOLON, "Expect ';' after value.")
+        self.consume(SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(value)
 
     def return_statement(self):
         keyword = self.previous()
-        value = self.expression() if not self.check(tt.SEMICOLON) else None
+        value = self.expression() if not self.check(SEMICOLON) else None
 
         self.consume(
-            type=tt.SEMICOLON, message="Expect ';' after return value"
+            type=SEMICOLON, message="Expect ';' after return value"
         )
         return Stmt.Return(keyword=keyword, value=value)
 
     def var_declaration(self):
-        name = self.consume(tt.IDENTIFIER, "Expect variable name.")
+        name = self.consume(IDENTIFIER, "Expect variable name.")
 
         initializer = None
-        if self.match(tt.EQUAL):
+        if self.match(EQUAL):
             initializer = self.expression()
 
-        self.consume(tt.SEMICOLON, "Expect ';' after variable declaration")
+        self.consume(SEMICOLON, "Expect ';' after variable declaration")
         return Stmt.Var(name=name, initializer=initializer)
 
     def while_statement(self):
-        self.consume(type=tt.LEFT_PAREN, message="Expect '(' after 'while'.")
+        self.consume(type=LEFT_PAREN, message="Expect '(' after 'while'.")
         condition = self.expression()
         self.consume(
-            type=tt.RIGHT_PAREN, message="Expect ')' after condition."
+            type=RIGHT_PAREN, message="Expect ')' after condition."
         )
         body = self.statement()
 
@@ -155,16 +155,16 @@ class Parser:
 
     def expression_statement(self):
         expr = self.expression()
-        self.consume(tt.SEMICOLON, "Expect ';' after expression.")
+        self.consume(SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
 
     def function(self, kind):
-        name = self.consume(type=tt.IDENTIFIER, message=f"Expect {kind} name.")
+        name = self.consume(type=IDENTIFIER, message=f"Expect {kind} name.")
         self.consume(
-            type=tt.LEFT_PAREN, message=f"Expect '(' after {kind} name."
+            type=LEFT_PAREN, message=f"Expect '(' after {kind} name."
         )
         parameters = []
-        if not self.check(tt.RIGHT_PAREN):
+        if not self.check(RIGHT_PAREN):
             condition = True
             while condition:
                 if len(parameters) >= 255:
@@ -173,25 +173,25 @@ class Parser:
                         message="Can't have more than 255 parameters."
                     )
                 parameters.append(self.consume(
-                    type=tt.IDENTIFIER, message="Expect parameter name."
+                    type=IDENTIFIER, message="Expect parameter name."
                 ))
-                condition = self.match(tt.COMMA)
+                condition = self.match(COMMA)
 
         self.consume(
-            type=tt.RIGHT_PAREN, message="Expect ')' after parameters."
+            type=RIGHT_PAREN, message="Expect ')' after parameters."
         )
         self.consume(
-            type=tt.LEFT_BRACE, message=f"Expect '{{' before {kind} body."
+            type=LEFT_BRACE, message=f"Expect '{{' before {kind} body."
         )
         body = self.block()
         return Stmt.Function(name=name, params=parameters, body=body)
 
     def block(self):
         statements = []
-        while (not self.check(tt.RIGHT_BRACE)) and (not self.is_at_end()):
+        while (not self.check(RIGHT_BRACE)) and (not self.is_at_end()):
             statements.append(self.declaration())
 
-        self.consume(tt.RIGHT_BRACE, "Expect '}' after block.")
+        self.consume(RIGHT_BRACE, "Expect '}' after block.")
         return statements
 
     def expression(self):
@@ -200,7 +200,7 @@ class Parser:
     def assignment(self):
         expr = self.or_()
 
-        if self.match(tt.EQUAL):
+        if self.match(EQUAL):
             equals = self.previous()
             value = self.assignment()
 
@@ -218,7 +218,7 @@ class Parser:
     def or_(self):
         expr = self.and_()
 
-        while self.match(tt.OR):
+        while self.match(OR):
             operator = self.previous()
             right = self.and_()
             expr = Expr.Logical(left=expr, operator=operator, right=right)
@@ -228,7 +228,7 @@ class Parser:
     def and_(self):
         expr = self.equality()
 
-        while self.match(tt.AND):
+        while self.match(AND):
             operator = self.previous()
             right = self.and_()
             expr = Expr.Logical(left=expr, operator=operator, right=right)
@@ -238,7 +238,7 @@ class Parser:
     def equality(self):
         expr = self.comparison()
 
-        while self.match(tt.BANG_EQUAL, tt.EQUAL_EQUAL):
+        while self.match(BANG_EQUAL, EQUAL_EQUAL):
             operator = self.previous()
             right = self.comparison()
             expr = Expr.Binary(left=expr, operator=operator, right=right)
@@ -248,7 +248,7 @@ class Parser:
     def comparison(self):
         expr = self.term()
 
-        while self.match(tt.GREATER, tt.GREATER_EQUAL, tt.LESS, tt.LESS_EQUAL):
+        while self.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL):
             operator = self.previous()
             right = self.term()
             expr = Expr.Binary(left=expr, operator=operator, right=right)
@@ -258,7 +258,7 @@ class Parser:
     def term(self):
         expr = self.factor()
 
-        while self.match(tt.MINUS, tt.PLUS):
+        while self.match(MINUS, PLUS):
             operator = self.previous()
             right = self.factor()
             expr = Expr.Binary(left=expr, operator=operator, right=right)
@@ -268,7 +268,7 @@ class Parser:
     def factor(self):
         expr = self.unary()
 
-        while self.match(tt.SLASH, tt.STAR):
+        while self.match(SLASH, STAR):
             operator = self.previous()
             right = self.unary()
             expr = Expr.Binary(left=expr, operator=operator, right=right)
@@ -276,7 +276,7 @@ class Parser:
         return expr
 
     def unary(self):
-        if self.match(tt.BANG, tt.MINUS):
+        if self.match(BANG, MINUS):
             operator = self.previous()
             right = self.unary()
             return Expr.Unary(operator, right)
@@ -285,9 +285,9 @@ class Parser:
 
     def finish_call(self, callee):
         arguments = []
-        if not self.check(tt.RIGHT_PAREN):
+        if not self.check(RIGHT_PAREN):
             arguments.append(self.expression())
-            while self.match(tt.COMMA):
+            while self.match(COMMA):
                 arguments.append(self.expression())
                 if len(arguments) > 255:
                     self.error(
@@ -296,7 +296,7 @@ class Parser:
                     )
 
         paren = self.consume(
-            type=tt.RIGHT_PAREN, message="Expect ')' after arguments."
+            type=RIGHT_PAREN, message="Expect ')' after arguments."
         )
 
         return Expr.Call(
@@ -307,11 +307,11 @@ class Parser:
         expr = self.primary()
 
         while (True):
-            if self.match(tt.LEFT_PAREN):
+            if self.match(LEFT_PAREN):
                 expr = self.finish_call(expr)
-            elif self.match(tt.DOT):
+            elif self.match(DOT):
                 name = self.consume(
-                    type=tt.IDENTIFIER,
+                    type=IDENTIFIER,
                     message="Expect property name after '.'."
                 )
                 expr = Expr.Get(object=expr, name=name)
@@ -322,45 +322,45 @@ class Parser:
 
     def array(self):
         elements = []
-        if not self.check(tt.RIGHT_BRACKET):
+        if not self.check(RIGHT_BRACKET):
             elements.append(self.expression())
-            while self.match(tt.COMMA):
+            while self.match(COMMA):
                 elements.append(self.expression())
-        self.consume(tt.RIGHT_BRACKET, "Expect ']' after array creation")
+        self.consume(RIGHT_BRACKET, "Expect ']' after array creation")
 
         return Expr.Array(values=elements)
 
     def primary(self):
-        if self.match(tt.LEFT_BRACKET):
+        if self.match(LEFT_BRACKET):
             return self.array()
-        if self.match(tt.FALSE):
+        if self.match(FALSE):
             return Expr.Literal(value=False)
-        if self.match(tt.TRUE):
+        if self.match(TRUE):
             return Expr.Literal(value=True)
-        if self.match(tt.NIL):
+        if self.match(NIL):
             return Expr.Literal(value=None)
 
-        if self.match(tt.NUMBER, tt.STRING):
+        if self.match(NUMBER, STRING):
             return Expr.Literal(self.previous().literal)
 
-        if self.match(tt.SUPER):
+        if self.match(SUPER):
             keyword = self.previous()
-            self.consume(type=tt.DOT, message="Expect '.' after 'super'.")
+            self.consume(type=DOT, message="Expect '.' after 'super'.")
             method = self.consume(
-                type=tt.IDENTIFIER, message="Expect superclass method name."
+                type=IDENTIFIER, message="Expect superclass method name."
             )
             return Expr.Super(keyword=keyword, method=method)
 
-        if self.match(tt.THIS):
+        if self.match(THIS):
             return Expr.This(self.previous())
 
-        if self.match(tt.IDENTIFIER):
+        if self.match(IDENTIFIER):
             return Expr.Variable(self.previous())
 
-        if self.match(tt.LEFT_PAREN):
+        if self.match(LEFT_PAREN):
             expr = self.expression()
             self.consume(
-                type=tt.RIGHT_PAREN, message="Expect ')' after expression."
+                type=RIGHT_PAREN, message="Expect ')' after expression."
             )
             return Expr.Grouping(expression=expr)
 
@@ -388,18 +388,18 @@ class Parser:
         self.advance()
 
         while not self.is_at_end():
-            if (self.previous().type == tt.SEMICOLON):
+            if (self.previous().type == SEMICOLON):
                 return
 
             if self.peek().type in (
-                tt.CLASS,
-                tt.FUN,
-                tt.VAR,
-                tt.FOR,
-                tt.IF,
-                tt.WHILE,
-                tt.PRINT,
-                tt.RETURN
+                CLASS,
+                FUN,
+                VAR,
+                FOR,
+                IF,
+                WHILE,
+                PRINT,
+                RETURN,
             ):
                 return
 
@@ -418,7 +418,7 @@ class Parser:
         return self.previous()
 
     def is_at_end(self):
-        return self.peek().type == tt.EOF
+        return self.peek().type == EOF
 
     def peek(self):
         return self.tokens[self.current]

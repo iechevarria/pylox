@@ -1,4 +1,4 @@
-from .token_type import TokenType as tt
+from .token_type import EOF
 
 
 class ErrorHandler():
@@ -15,7 +15,7 @@ class ErrorHandler():
         self.report(line=line, message=f"Error: {message}")
 
     def token_error(self, token, message):
-        if token.type == tt.EOF:
+        if token.type == EOF:
             self.report(line=token.line, message=f"Error at end: {message}")
         else:
             self.report(
