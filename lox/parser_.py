@@ -289,9 +289,9 @@ class Parser:
             arguments.append(self.expression())
             while self.match(tt.COMMA):
                 arguments.append(self.expression())
-                if len(arguments) >= 255:
+                if len(arguments) > 255:
                     self.error(
-                        token=self.peek(),
+                        token=self.previous(),
                         message="Can't have more than 255 arguments."
                     )
 

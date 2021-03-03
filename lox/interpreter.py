@@ -152,9 +152,10 @@ class Interpreter:
             raise RuntimeException(
                 token=expr.name, message="Only instances have fields."
             )
-            value = self.evaluate(expr.value)
-            obj.set(name=expr.name, value=value)
-            return value
+
+        value = self.evaluate(expr.value)
+        obj.set(name=expr.name, value=value)
+        return value
 
     def super_(self, expr):
         distance = self.locals[expr]

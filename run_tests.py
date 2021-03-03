@@ -76,7 +76,7 @@ def run_tests(dir_):
     tests = list(pathlib.Path(dir_).glob("*/*.lox"))
     for test in tests:
         try:
-            passes += run_test(test, verbose=False)
+            passes += run_test(test, verbose=True)
         except Exception:
             print(logging.exception(f"\nException on {test}"))
 
