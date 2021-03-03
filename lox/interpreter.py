@@ -301,7 +301,7 @@ class Interpreter:
 def check_number_operands(operator, *operands):
     if all(isinstance(operand, float) for operand in operands):
         return
-    raise RuntimeException(token=operator, message="Operand must be a number.")
+    raise RuntimeException(token=operator, message="Operands must be numbers.")
 
 
 def stringify(obj):
