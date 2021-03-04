@@ -3,7 +3,10 @@ from .callable_ import (
 )
 from .environment import Environment
 from .exceptions import Return, RuntimeException
-from .token_type import *
+from .token_type import (
+    MINUS, PLUS, SLASH, STAR, BANG, BANG_EQUAL, EQUAL_EQUAL, GREATER,
+    GREATER_EQUAL, LESS, LESS_EQUAL, OR,
+)
 
 
 class Interpreter:
