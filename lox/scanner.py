@@ -1,4 +1,5 @@
 from .token_ import Token
+# I will freely admit this is dumb, but I'd rather not from x import *
 from .token_type import (
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, LEFT_BRACKET,
     RIGHT_BRACKET, COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, BANG,

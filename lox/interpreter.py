@@ -9,6 +9,54 @@ from .token_type import (
 )
 
 
+def check_number_operands(operator, *operands):
+    if all(isinstance(operand, float) for operand in operands):
+        return
+
+    message = (
+        "Operands must be numbers." if len(operands) > 1
+        else "Operand must be a number."
+    )
+    raise RuntimeException(token=operator, message=message)
+
+
+def stringify(obj):
+    if obj is None:
+        return "nil"
+
+    if isinstance(obj, float):
+        text = str(obj)
+        if text.endswith(".0"):
+            text = text[:-2]
+        return text
+
+    if isinstance(obj, bool):
+        return str(obj).lower()
+
+    if isinstance(obj, list):
+        return "[" + ", ".join([stringify(e) for e in obj]) + "]"
+
+    return str(obj)
+
+
+def is_truthy(obj):
+    if obj is None:
+        return False
+    if isinstance(obj, bool):
+        return obj
+
+    return True
+
+
+def is_equal(a, b):
+    if a is None and b is None:
+        return True
+    if isinstance(a, bool) or isinstance(b, bool):
+        return a is b
+
+    return a == b
+
+
 class Interpreter:
     def __init__(self, error_handler):
         self.error_handler = error_handler
@@ -34,7 +82,11 @@ class Interpreter:
         """Called only by Resolver on pass before actual interpretation"""
         self.locals[expr] = depth
 
+    # # #
+    # # #   Statements
+    # # #
     def execute(self, stmt):
+        """Routes statements to method for processing"""
         stmts = {
             "Block": self.block,
             "Class": self.class_,
@@ -137,7 +189,11 @@ class Interpreter:
         while is_truthy(self.evaluate(expr=stmt.condition)):
             self.execute(stmt=stmt.body)
 
+    # # #
+    # # #   Expressions
+    # # #
     def evaluate(self, expr):
+        """Routes expressions to methods for processing"""
         exprs = {
             "Array": self.array,
             "Assign": self.assign,
@@ -237,20 +293,32 @@ class Interpreter:
 
         return callee.call(interpreter=self, arguments=arguments)
 
+    def get(self, expr):
+        obj = self.evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(name=expr.name)
+
+        raise RuntimeException(
+            token=expr.name, message="Only instances have properties."
+        )
+
+    def grouping(self, expr):
+        return self.evaluate(expr=expr.expression)
+
     def literal(self, expr):
         return expr.value
 
     def logical(self, expr):
-        left = self.evaluate(expr.left)
+        left = self.evaluate(expr=expr.left)
 
         if expr.operator.type == OR:
-            if is_truthy(left):
+            if is_truthy(obj=left):
                 return left
         else:
-            if not is_truthy(left):
+            if not is_truthy(obj=left):
                 return left
 
-        return self.evaluate(expr.right)
+        return self.evaluate(expr=expr.right)
 
     def set_(self, expr):
         obj = self.evaluate(expr.object)
@@ -260,7 +328,7 @@ class Interpreter:
                 token=expr.name, message="Only instances have fields."
             )
 
-        value = self.evaluate(expr.value)
+        value = self.evaluate(expr=expr.value)
         obj.set(name=expr.name, value=value)
         return value
 
@@ -277,86 +345,27 @@ class Interpreter:
                 message=f"Undefined property '{expr.method.lexeme}'.",
             )
 
-        return method.bind(obj)
+        return method.bind(instance=obj)
 
     def this(self, expr):
         return self.look_up_variable(name=expr.keyword, expr=expr)
 
-    def grouping(self, expr):
-        return self.evaluate(expr.expression)
-
     def unary(self, expr):
-        right = self.evaluate(expr.right)
+        right = self.evaluate(expr=expr.right)
 
         if expr.operator.type == MINUS:
             check_number_operands(expr.operator, right)
             return - float(right)
         if expr.operator.type == BANG:
-            return not is_truthy(right)
-
-    def get(self, expr):
-        obj = self.evaluate(expr.object)
-        if isinstance(obj, LoxInstance):
-            return obj.get(expr.name)
-
-        raise RuntimeException(
-            token=expr.name, message="Only instances have properties."
-        )
+            return not is_truthy(obj=right)
 
     def variable(self, expr):
-        return self.look_up_variable(expr.name, expr)
+        return self.look_up_variable(name=expr.name, expr=expr)
 
     def look_up_variable(self, name, expr):
+        """Used by 'variable' and 'this'"""
         if expr in self.locals:
-            return self.environment.get_at(self.locals[expr], name.lexeme)
-        return self.globals.get(name)
-
-
-def check_number_operands(operator, *operands):
-    if all(isinstance(operand, float) for operand in operands):
-        return
-
-    message = (
-        "Operands must be numbers." if len(operands) > 1
-        else "Operand must be a number."
-    )
-    raise RuntimeException(token=operator, message=message)
-
-
-def stringify(obj):
-    if obj is None:
-        return "nil"
-
-    if isinstance(obj, float):
-        text = str(obj)
-        if text.endswith(".0"):
-            text = text[:-2]
-        return text
-
-    if isinstance(obj, bool):
-        return str(obj).lower()
-
-    if isinstance(obj, list):
-        return "[" + ", ".join([stringify(e) for e in obj]) + "]"
-
-    return str(obj)
-
-
-def is_truthy(obj):
-    if obj is None:
-        return False
-    if isinstance(obj, bool):
-        return obj
-
-    return True
-
-
-def is_equal(a, b):
-    if a is None and b is None:
-        return True
-    if a is None:
-        return False
-    if isinstance(a, bool) or isinstance(b, bool):
-        return a is b
-
-    return a == b
+            return self.environment.get_at(
+                distance=self.locals[expr], name=name.lexeme
+            )
+        return self.globals.get(name=name)

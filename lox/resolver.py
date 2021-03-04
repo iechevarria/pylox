@@ -1,24 +1,20 @@
 from .callable_ import INIT
 
-# constants for functions + classes
-NONE = 0
 
-# constants for function types
-FUNCTION = 1
-INITIALIZER = 2
-METHOD = 3
-
-# constants for class types
-CLASS = 1
-SUBCLASS = 2
+# constants for callable types
+FUNCTION = "function"
+INITIALIZER = "initializer"
+METHOD = "method"
+CLASS = "class"
+SUBCLASS = "subclass"
 
 
 class Resolver:
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.error_handler = self.interpreter.error_handler
-        self.current_function = NONE
-        self.current_class = NONE
+        self.current_function = None
+        self.current_class = None
         self.scopes = []
 
     def resolve(self, *statements):
@@ -154,7 +150,7 @@ class Resolver:
         self.resolve(stmt.expression)
 
     def return_(self, stmt):
-        if self.current_function == NONE:
+        if self.current_function is None:
             self.error_handler.token_error(
                 stmt.keyword, "Can't return from top-level code."
             )
@@ -212,7 +208,7 @@ class Resolver:
         self.resolve(expr.object)
 
     def super_(self, expr):
-        if self.current_class == NONE:
+        if self.current_class is None:
             self.error_handler.token_error(
                 token=expr.keyword,
                 message="Can't use 'super' outside of a class."
@@ -226,7 +222,7 @@ class Resolver:
         self.resolve_local(expr=expr, name=expr.keyword)
 
     def this(self, expr):
-        if self.current_class == NONE:
+        if self.current_class is None:
             self.error_handler.token_error(
                 token=expr.keyword,
                 message="Can't use 'this' outside of a class."

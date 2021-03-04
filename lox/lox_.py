@@ -14,6 +14,7 @@ class Lox:
         self.error_handler = ErrorHandler()
         self.interpreter = Interpreter(error_handler=self.error_handler)
 
+        # don't want to start a prompt when running tests
         if test:
             return
         elif (len(args) > 2):
@@ -28,9 +29,9 @@ class Lox:
         with open(path, "r", encoding="utf-8") as f:
             self.run(f.read())
 
-        if self.had_error():
+        if self.error_handler.had_error:
             sys.exit(65)
-        if self.had_runtime_error():
+        if self.self.error_handler.had_runtime_error:
             sys.exit(70)
 
     def run_prompt(self):
@@ -40,6 +41,7 @@ class Lox:
             except EOFError:
                 break
             self.run(line)
+            # execute code even if previous statement had an error
             self.error_handler.had_error = False
 
     def run(self, source):
@@ -49,19 +51,15 @@ class Lox:
         parser = Parser(tokens=tokens, error_handler=self.error_handler)
         statements = parser.parse()
 
-        if self.had_error():
+        # don't execute code that had parse errors
+        if self.error_handler.had_error:
             return
 
-        resolver = Resolver(self.interpreter)
+        resolver = Resolver(interpreter=self.interpreter)
         resolver.resolve(*statements)
 
-        if self.had_error():
+        # don't execute code that had resolution errors
+        if self.error_handler.had_error:
             return
 
-        self.interpreter.interperet(statements)
-
-    def had_error(self):
-        return self.error_handler.had_error
-
-    def had_runtime_error(self):
-        return self.error_handler.had_runtime_error
+        self.interpreter.interperet(statements=statements)
