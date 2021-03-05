@@ -55,11 +55,29 @@ class Scanner:
         self.current = 0
         self.line = 1
 
-    def error(self, line, message):
-        self.error_handler.scanner_error(line=line, message=message)
-
-    def is_at_end(self):
-        return self.current >= len(self.source)
+        self.token_strings = {
+            "(": lambda: LEFT_PAREN,
+            ")": lambda: RIGHT_PAREN,
+            "{": lambda: LEFT_BRACE,
+            "}": lambda: RIGHT_BRACE,
+            "[": lambda: LEFT_BRACKET,
+            "]": lambda: RIGHT_BRACKET,
+            ",": lambda: COMMA,
+            ".": lambda: DOT,
+            "-": lambda: MINUS,
+            "+": lambda: PLUS,
+            ";": lambda: SEMICOLON,
+            "*": lambda: STAR,
+            "!": lambda: BANG_EQUAL if self.match("=") else BANG,
+            "=": lambda: EQUAL_EQUAL if self.match("=") else EQUAL,
+            "<": lambda: LESS_EQUAL if self.match("=") else LESS,
+            ">": lambda: GREATER_EQUAL if self.match("=") else GREATER,
+            "/": lambda: self.slash(),
+            " ": lambda: None,
+            "\r": lambda: None,
+            "\t": lambda: None,
+            "\n": lambda: self.newline(),
+        }
 
     def scan_tokens(self):
         while not self.is_at_end():
@@ -75,119 +93,51 @@ class Scanner:
     def scan_token(self):
         char = self.advance()
 
-        # really wish PEP 636 was in for this part
-        if char == "(":
-            self.add_token(LEFT_PAREN)
-        elif char == ")":
-            self.add_token(RIGHT_PAREN)
-        elif char == "{":
-            self.add_token(LEFT_BRACE)
-        elif char == "}":
-            self.add_token(RIGHT_BRACE)
-        elif char == "[":
-            self.add_token(LEFT_BRACKET)
-        elif char == "]":
-            self.add_token(RIGHT_BRACKET)
-        elif char == ",":
-            self.add_token(COMMA)
-        elif char == ".":
-            self.add_token(DOT)
-        elif char == "-":
-            self.add_token(MINUS)
-        elif char == "+":
-            self.add_token(PLUS)
-        elif char == ";":
-            self.add_token(SEMICOLON)
-        elif char == "*":
-            self.add_token(STAR)
-
-        # 1 or 2 token stuff
-        elif char == "!":
-            token = BANG_EQUAL if self.match("=") else BANG
-            self.add_token(token)
-        elif char == "=":
-            token = EQUAL_EQUAL if self.match("=") else EQUAL
-            self.add_token(token)
-        elif char == "<":
-            token = LESS_EQUAL if self.match("=") else LESS
-            self.add_token(token)
-        elif char == ">":
-            token = GREATER_EQUAL if self.match("=") else GREATER
-            self.add_token(token)
-
-        # handle slash
-        elif char == "/":
-            if self.match('/'):
-                while self.peek() != "\n" and not self.is_at_end():
-                    self.advance()
-            elif self.match('*'):
-                self.block_comment()
-            else:
-                self.add_token(SLASH)
-
-        # handle whitespace stuff
-        elif char in [" ", "\r", "\t"]:
-            return
-        elif char == "\n":
-            self.line += 1
-
-        # handle string
+        if char in self.token_strings:
+            self.add_token(type=self.token_strings[char]())
         elif char == "\"":
-            self.string()
-
-        # handle other chars
+            self.add_token(*self.string())
+        elif is_digit(char):
+            self.add_token(*self.number())
+        elif is_alpha(char):
+            self.add_token(type=self.identifier())
         else:
-            if is_digit(char):
-                self.number()
-            elif is_alpha(char):
-                self.identifier()
-            else:
-                self.error(
-                    line=self.line, message=f"Unexpected character: {char}"
-                )
+            self.error(
+                line=self.line, message=f"Unexpected character: {char}"
+            )
 
-    def identifier(self):
-        while (is_alphanumeric(self.peek())):
-            self.advance()
-
-        text = self.source[self.start:self.current]
-
-        if text in KEYWORDS:
-            self.add_token(KEYWORDS[text])
-        else:
-            self.add_token(IDENTIFIER)
-
-    def number(self):
-        while is_digit(self.peek()):
-            self.advance()
-
-        if self.peek() == '.' and is_digit(self.peek_next()):
-            self.advance()
-            while is_digit(self.peek()):
-                self.advance()
-
-        self.add_token_literal(
-            type=NUMBER, literal=float(self.source[self.start:self.current])
-        )
-
+    # # #
+    # # #   Specific token scanning functions
+    # # #
     def string(self):
         while self.peek() != "\"" and not self.is_at_end():
             if self.peek() == "\n":
                 self.line += 1
             self.advance()
 
-        if (self.is_at_end()):
+        if self.is_at_end():
             self.error(line=self.line, message="Unterminated string.")
-            return
+            return (None, None)
 
         # closing "
         self.advance()
 
         # trim surrounding quotes
         value = self.source[self.start + 1:self.current - 1]
-        self.add_token_literal(type=STRING, literal=value)
+        return (STRING, value)
+
+    def slash(self):
+        if self.match("/"):
+            while self.peek() != "\n" and not self.is_at_end():
+                self.advance()
+            return None
+        elif self.match("*"):
+            return self.block_comment()
+        else:
+            return SLASH
 
     def block_comment(self):
+        """Handles C-style block comments"""
         while (
             not (self.peek() == "*" and self.peek_next() == "/")
             and not self.is_at_end()
@@ -198,6 +148,47 @@ class Scanner:
 
         if self.peek() == "*" and self.peek_next() == "/":
             self.advance(spaces=2)
+
+        return None
+
+    def newline(self):
+        self.line += 1
+        return None
+
+    def identifier(self):
+        while (is_alphanumeric(self.peek())):
+            self.advance()
+
+        text = self.source[self.start:self.current]
+
+        if text in KEYWORDS:
+            return KEYWORDS[text]
+        else:
+            return IDENTIFIER
+
+    def number(self):
+        while is_digit(self.peek()):
+            self.advance()
+
+        if self.peek() == '.' and is_digit(self.peek_next()):
+            self.advance()
+            while is_digit(self.peek()):
+                self.advance()
+
+        return (NUMBER, float(self.source[self.start:self.current]))
+
+    # # #
+    # # #   Utilities (mostly with side effects)
+    # # #
+    def add_token(self, type, literal=None):
+        # handle empty tokens (whitespace, unterminated strings)
+        if type is None:
+            return
+
+        text = self.source[self.start:self.current]
+        self.tokens.append(
+            Token(type=type, lexeme=text, literal=literal, line=self.line)
+        )
 
     def match(self, expected):
         if self.is_at_end():
@@ -220,11 +211,8 @@ class Scanner:
         self.current += spaces
         return self.source[self.current - 1]
 
-    def add_token(self, type):
-        self.add_token_literal(type, None)
+    def is_at_end(self):
+        return self.current >= len(self.source)
 
-    def add_token_literal(self, type, literal):
-        text = self.source[self.start:self.current]
-        self.tokens.append(
-            Token(type=type, lexeme=text, literal=literal, line=self.line)
-        )
+    def error(self, line, message):
+        self.error_handler.scanner_error(line=line, message=message)

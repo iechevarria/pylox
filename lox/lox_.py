@@ -31,7 +31,7 @@ class Lox:
 
         if self.error_handler.had_error:
             sys.exit(65)
-        if self.self.error_handler.had_runtime_error:
+        if self.error_handler.had_runtime_error:
             sys.exit(70)
 
     def run_prompt(self):
