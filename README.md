@@ -24,3 +24,8 @@ The table lays out important directories/files and their purposes:
 | tool/                | Garbage metaprogramming hacks (don't do this)                                                                  |
 | run_tests.py         | Script to run tests                                                                                            |
 
+## Further reading
+
+Again, I'd strongly recommend [Crafting Interpreters](https://craftinginterpreters.com/).
+
+Lots of people have created their own Lox implementations. [This list](https://github.com/munificent/craftinginterpreters/wiki/Lox-implementations) contains implementations in Python and many other languages.
