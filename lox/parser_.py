@@ -390,7 +390,7 @@ class Parser:
     # # #   Utilities
     # # #
     def synchronize(self):
-        """Recover from error so that more errors can be found"""
+        """Recover from error so that more parse errors can be found"""
         self.advance()
 
         while not self.is_at_end():
